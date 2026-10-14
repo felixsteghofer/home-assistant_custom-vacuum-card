@@ -1,0 +1,12 @@
+type: custom:dahoam-dreame-card
+entity: vacuum.winky
+name: Winky
+show_map: true
+map_entity: camera.winky_map
+cleaning_mode_entity: select.winky_cleaning_mode
+wash_entity: button.winky_self_clean
+dry_entity: button.winky_manual_drying
+empty_entity: button.winky_start_auto_empty
+repeats: 1
+water_level_entity: number.winky_wetness_level
+default_water_level: 14
