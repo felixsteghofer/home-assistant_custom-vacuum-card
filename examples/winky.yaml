@@ -10,3 +10,4 @@ empty_entity: button.winky_start_auto_empty
 repeats: 1
 water_level_entity: number.winky_wetness_level
 default_water_level: 14
+live_camera_entity: camera.winky_live
