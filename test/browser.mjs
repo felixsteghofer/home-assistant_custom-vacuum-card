@@ -21,7 +21,7 @@ await page.evaluate(()=>{
  window.card=document.createElement('dahoam-dreame-card');card.setConfig({entity:'vacuum.test',name:'Winky',show_map:false,water_level_entity:'number.water',cleaning_mode_entity:'select.mode',wash_entity:'button.wash',dry_entity:'button.dry',empty_entity:'button.empty'});card.hass=hass;document.body.append(card);
 });
 const root=page.locator('dahoam-dreame-card');
-const closePanel=async()=>{await page.evaluate(()=>card.shadowRoot.querySelector('dialog')?.close());};
+const closePanel=async()=>{await page.evaluate(()=>card._closeFlyout(false));};
 const openPanel=async(name)=>{await closePanel();await root.locator(`[data-action="panel-${name}"]`).click();};
 await openPanel('rooms');
 await root.locator('[data-room="1"]').click();await root.locator('[data-room="6"]').click();

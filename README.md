@@ -5,7 +5,7 @@ A compact Home Assistant custom card with a camera map, room selection, cleaning
 ## Install
 
 1. Copy `dahoam-dreame-card.js` to `/config/www/dahoam-dreame-card.js`.
-2. Add `/local/dahoam-dreame-card.js?v=1.4.0` as a **JavaScript module** in **Settings → Dashboards → Resources**.
+2. Add `/local/dahoam-dreame-card.js?v=1.5.0` as a **JavaScript module** in **Settings → Dashboards → Resources**.
 3. Hard-refresh Home Assistant, then **Add card → Dahoam Vacuum**. Choose the vacuum and its related entities. See `examples/winky.yaml` and `examples/dobby.yaml`.
 
 No build step or runtime dependencies. Existing `custom:dahoam-dreame-card` configurations continue to work. Do not edit Home Assistant's `.storage` files.
@@ -13,12 +13,22 @@ No build step or runtime dependencies. Existing `custom:dahoam-dreame-card` conf
 ## Controls
 
 - Start, pause/resume, stop and return to station.
-- Map preview, zoom and manual refresh. Camera images refresh every 10 seconds during cleaning and every 30 seconds otherwise while the page is visible.
-- **Rooms**, **Cleaning**, **Station** and **Maintenance** badges open modal flyouts. Escape, Done or the close button dismisses them.
+- Map preview, pinch/wheel zoom and manual refresh. Camera images refresh every 10 seconds during cleaning and every 30 seconds otherwise while the page is visible.
+- **Rooms**, **Cleaning**, **Station** and **Maintenance** badges open non-modal flyouts anchored to the badge. The background remains usable, without dimming or blur. Outside click/tap, Escape, the same badge, or the close button dismisses them.
 - Cleaning mode includes vacuum, mop, vacuum+mop, and mop after vacuum, depending on the configured integration's options.
 - Water level defaults to **14**. The range follows the configured number entity; tested with a Dreame device exposing 1–32.
 - Mode and water are applied when starting a new whole-home or room task. Resume keeps the current task's settings. If preparation fails, cleaning does not start.
 - Suction changes apply immediately. Dock buttons retain their integration's start/pause or start/stop behavior.
+
+## Map and flyout interactions
+
+- **Mobile:** pinch with two fingers to zoom, or move both fingers together to pan. At 100%, one-finger swipes over the map continue scrolling the page. When zoomed, the map can also be scrolled using its native scroll area.
+- **Desktop:** click the map, then use the wheel to zoom around the cursor; Ctrl/⌘ + wheel also works without first focusing it. Without focus or a modifier, the wheel keeps its normal scrolling behavior instead of changing zoom. At zoom limits, normal scrolling resumes. Drag the zoomed map with the mouse to pan.
+- **Keyboard / alternatives:** focus the map and use +/− to zoom, 0 to reset, and arrow keys to pan. The on-screen +/− and percentage/reset buttons remain available. Scrollbars provide a single-pointer alternative to dragging. Browser zoom shortcuts and gestures outside the map are unchanged.
+- Flyouts use the native Popover API with a small anchored fallback for older webviews. They fit above or below their invoker and stay within the visual viewport, including when the on-screen keyboard resizes it. They do not lock scrolling or trap focus; scrolling their badge out of view dismisses them.
+- Theme colors, fonts, card radius and card borders follow Home Assistant's CSS variables. Controls use a flatter appearance with no decorative gradient or heavy shadow on the card. The native popover surface is elevated only enough to separate it from the dashboard.
+
+The implementation follows [MDN's non-modal Popover API guidance](https://developer.mozilla.org/en-US/docs/Web/API/Popover_API/Using), [wheel-event cancellation and delta modes](https://developer.mozilla.org/en-US/docs/Web/API/Element/wheel_event), [touch-action behavior](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/touch-action), and [W3C pointer-gesture alternatives](https://www.w3.org/WAI/WCAG22/Understanding/pointer-gestures.html). Gesture handlers are scoped to the map; they do not disable touch behavior on the document. Following [Home Assistant's custom-component guidance](https://developers.home-assistant.io/blog/2026/03/25/frontend-component-updates-2026.4/), the controls remain independent of undocumented HA popup components.
 
 ## Configuration
 
@@ -63,6 +73,6 @@ BROWSER_EXECUTABLE=/path/to/chromium npm test
 node --check dahoam-dreame-card.js
 ```
 
-Tests use mock Home Assistant states and commands, cover scrolling stability, flyouts, map loading, room payloads, water-before-start sequencing, Valetudo capability filtering and sensor conversions, and save screenshots to ignored `reports/`. No physical device is controlled. An optional `DREAME_MAP_FIXTURE` environment variable accepts a local PNG for visual checks; private maps are never committed.
+Tests use mock Home Assistant states and commands, cover scrolling stability, flyouts, map loading, room payloads, water-before-start sequencing, Valetudo capability filtering and sensor conversions, plus actual Chromium mobile touch input, cooperative wheel zoom, popup placement, keyboard focus and theme variables, and save screenshots to ignored `reports/`. No physical device is controlled. Optional `DREAME_MAP_FIXTURE` and `DOBBY_MAP_FIXTURE` environment variables accept local PNGs for visual checks; private maps are never committed.
 
 MIT license. Not affiliated with Dreame or Home Assistant.

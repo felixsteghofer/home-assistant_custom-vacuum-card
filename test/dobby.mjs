@@ -35,18 +35,18 @@ await root.locator('[data-setting="fan"]').selectOption('medium');
 assert.deepEqual(await page.evaluate(()=>calls.at(-1)),['vacuum','set_fan_speed',{entity_id:'vacuum.dobby',fan_speed:'medium'}]);
 await root.locator('[data-action="carpet"]').click();
 assert.deepEqual(await page.evaluate(()=>calls.at(-1)),['switch','turn_off',{entity_id:'switch.carpet'}]);
-await page.evaluate(()=>card.shadowRoot.querySelector('dialog').close());
+await page.evaluate(()=>card._closeFlyout(false));
 await root.locator('[data-action="panel-tools"]').click();
 await root.locator('[data-action="locate"]').click();
 assert.deepEqual(await page.evaluate(()=>calls.at(-1)),['vacuum','locate',{entity_id:'vacuum.dobby'}]);
 await root.locator('[data-action="clean_spot"]').click();
 assert.deepEqual(await page.evaluate(()=>calls.at(-1)),['vacuum','clean_spot',{entity_id:'vacuum.dobby'}]);
-await page.evaluate(()=>card.shadowRoot.querySelector('dialog').close());
+await page.evaluate(()=>card._closeFlyout(false));
 await root.locator('[data-action="panel-maintenance"]').click();
 assert.match(await root.locator('.supplies').innerText(),/224.5 h/);
 assert.match(await root.locator('.supplies').innerText(),/0 h/);
 assert.equal(await root.locator('.supplies progress').count(),0);
-await page.evaluate(()=>card.shadowRoot.querySelector('dialog').close());
+await page.evaluate(()=>card._closeFlyout(false));
 await root.locator('[data-action="start"]').click();assert.equal(await page.evaluate(()=>calls.at(-1)[1]),'start');
 // Remove the underlying capabilities: no unsupported controls or blank maintenance remain.
 await page.evaluate(()=>{hass.states['vacuum.dobby'].attributes.supported_features=8192;card.setConfig({entity:'vacuum.dobby'});card.hass={...hass}});
@@ -64,9 +64,9 @@ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerW
 await root.locator('[data-action="panel-settings"]').click();
 await page.screenshot({path:new URL('../reports/dobby-flyout.png',import.meta.url).pathname,fullPage:true});
 // Escape dismisses and a popup stays usable across HA updates.
-await page.evaluate(()=>{window.dialog=card.shadowRoot.querySelector('dialog');hass.states['sensor.battery'].state='99';card.hass={...hass}});
-assert.equal(await page.evaluate(()=>dialog===card.shadowRoot.querySelector('dialog') && dialog.open),true);
-await page.keyboard.press('Escape');assert.equal(await page.evaluate(()=>dialog.open),false);
+await page.evaluate(()=>{window.dialog=card.shadowRoot.querySelector('.flyout');hass.states['sensor.battery'].state='99';card.hass={...hass}});
+assert.equal(await page.evaluate(()=>dialog===card.shadowRoot.querySelector('.flyout') && dialog.matches(':popover-open')),true);
+await page.keyboard.press('Escape');assert.equal(await page.evaluate(()=>dialog.matches(':popover-open')),false);
 await page.evaluate(()=>{hass.states['sensor.error'].state='<b>Wheel blocked</b>';card.hass={...hass}});
 assert.match(await root.locator('.error').innerText(),/Wheel blocked/);assert.equal(await root.locator('.error b').count(),0);
 assert.deepEqual(errors,[]);await browser.close();
