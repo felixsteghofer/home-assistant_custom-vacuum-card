@@ -1,0 +1,13 @@
+type: custom:dahoam-vacuum-card
+entity: vacuum.valetudo_dobby
+name: Dobby
+map_entity: camera.dobby_camera
+battery_entity: sensor.valetudo_dobby_battery_level
+area_entity: sensor.valetudo_dobby_current_statistics_area
+time_entity: sensor.valetudo_dobby_current_statistics_time
+error_entity: sensor.valetudo_dobby_error
+main_brush_entity: sensor.valetudo_dobby_main_brush
+side_brush_entity: sensor.valetudo_dobby_right_brush
+filter_entity: sensor.valetudo_dobby_main_filter
+sensor_cleaning_entity: sensor.valetudo_dobby_sensor_cleaning
+carpet_mode_entity: switch.valetudo_dobby_carpet_mode
