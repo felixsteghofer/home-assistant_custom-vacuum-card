@@ -5,7 +5,7 @@ A compact Home Assistant custom card with a camera map, room selection, cleaning
 ## Install
 
 1. Copy `dahoam-dreame-card.js` to `/config/www/dahoam-dreame-card.js`.
-2. Add `/local/dahoam-dreame-card.js?v=1.5.0` as a **JavaScript module** in **Settings → Dashboards → Resources**.
+2. Add `/local/dahoam-dreame-card.js?v=1.6.0` as a **JavaScript module** in **Settings → Dashboards → Resources**.
 3. Hard-refresh Home Assistant, then **Add card → Dahoam Vacuum**. Choose the vacuum and its related entities. See `examples/winky.yaml` and `examples/dobby.yaml`.
 
 No build step or runtime dependencies. Existing `custom:dahoam-dreame-card` configurations continue to work. Do not edit Home Assistant's `.storage` files.
@@ -15,6 +15,7 @@ No build step or runtime dependencies. Existing `custom:dahoam-dreame-card` conf
 - Start, pause/resume, stop and return to station.
 - Map preview, pinch/wheel zoom and manual refresh. Camera images refresh every 10 seconds during cleaning and every 30 seconds otherwise while the page is visible.
 - **Rooms**, **Cleaning**, **Station** and **Maintenance** badges open non-modal flyouts anchored to the badge. The background remains usable, without dimming or blur. Outside click/tap, Escape, the same badge, or the close button dismisses them.
+- In the room flyout, **Alle auswählen** selects every room exposed by the vacuum on the current map; **Leeren** clears the selection. Selection alone never starts cleaning. Hidden rooms omitted by the integration are not added.
 - Cleaning mode includes vacuum, mop, vacuum+mop, and mop after vacuum, depending on the configured integration's options.
 - Water level defaults to **14**. The range follows the configured number entity; tested with a Dreame device exposing 1–32.
 - Mode and water are applied when starting a new whole-home or room task. Resume keeps the current task's settings. If preparation fails, cleaning does not start.
@@ -48,6 +49,8 @@ Only `entity` is required. The visual editor supports the optional fields below.
 | `carpet_mode_entity` | Optional carpet-mode switch |
 | `main_brush_entity`, `side_brush_entity`, `filter_entity`, `sensor_cleaning_entity` | Optional consumable sensors |
 | `repeats` | Room-cleaning repetitions, 1–3 |
+
+The optional statistic and maintenance sensors override the corresponding vacuum attributes; when omitted, the card reads `battery`, `cleaned_area`, `cleaning_time`, `main_brush_left`, `side_brush_left`, `filter_left` and `sensor_dirty_left` from the vacuum. These attribute fallbacks use %, m² and minutes. Explicit sensors use their reported units, including cm²/seconds/minutes conversions. `repeats` applies to room tasks only; `default_water_level` initializes the staged water setting and is applied on starting a mopping task. The editor preserves Home Assistant layout/visibility keys.
 
 The original Dreame card is not required. This is an independent implementation that uses existing Home Assistant entities and services. The backend integration still controls device access and availability. The map is an image preview, without zone drawing or map editing. Source timestamps can remain old while docked. Individual room customization must be disabled in the device settings when using global mode/water controls.
 
