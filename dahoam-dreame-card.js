@@ -1,4 +1,4 @@
-/** Dahoam Vacuum Card v1.7.1 — independent implementation, MIT. */
+/** Dahoam Vacuum Card v1.7.2 — independent implementation, MIT. */
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const available = entity => entity && !['unknown', 'unavailable'].includes(entity.state);
 const validNumber = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
@@ -115,7 +115,7 @@ class DahoamDreameCard extends HTMLElement {
     if(keyboard)flyout.querySelector('select,input,button:not([data-action="close-panel"]):not(:disabled)')?.focus({preventScroll:true});
   }
   _closeFlyout(restoreFocus=true) {
-    if(this._panel==='camera')this._releaseCamera();
+    if(this._cameraOwned || this._panel==='camera')this._releaseCamera();
     const flyout=this.shadowRoot.querySelector('.flyout'),anchor=this._anchor;
     if(flyout){if(typeof flyout.hidePopover==='function'){if(flyout.matches(':popover-open'))flyout.hidePopover();}else flyout.hidden=true;}
     document.removeEventListener('pointerdown',this._fallbackOutside,true);document.removeEventListener('keydown',this._fallbackEscape);
@@ -245,8 +245,9 @@ class DahoamDreameCard extends HTMLElement {
     try {
       const helpers=await window.loadCardHelpers();
       if(!host.isConnected || this._panel!=='camera' || this._cameraBusy || this._config.live_camera_entity!==entity || this._entity('live_camera_entity')?.state!=='streaming')return;
-      // HA owns camera authentication, media rendering and the native more-info action.
-      const card=helpers.createCardElement({type:'picture-entity',entity,camera_view:'live',show_name:false,show_state:false,fit_mode:'contain',tap_action:{action:'more-info'}});
+      // HA owns camera authentication and media rendering. Keep playback in this surface
+      // so a second details dialog cannot outlive the session controls.
+      const card=helpers.createCardElement({type:'picture-entity',entity,camera_view:'live',show_name:false,show_state:false,fit_mode:'contain',tap_action:{action:'none'},hold_action:{action:'none'},double_tap_action:{action:'none'}});
       card.hass=this._hass;
       this._nativeCameraCard=card;host.replaceChildren(card);
       this._positionFlyout();
@@ -339,11 +340,11 @@ class DahoamDreameCard extends HTMLElement {
       <div class="controls">${running && this._supports('pause') ? this._button('pause','pause','Pause',!online,'primary') : this._supports('start') ? this._button('start','play',state?.state === 'paused' ? 'Fortsetzen' : 'Start',!online,'primary'):''}${this._supports('return_to_base')?this._button('return_to_base','home-import-outline','Station',!online):''}${this._supports('stop')?this._button('stop','stop','Stopp',!online):''}</div>
       ${validNumber(a.cleaning_progress) ? `<div class="progress"><span style="width:${percent}%"></span></div>`:''}
       <div class="badges" data-key="badges">
-        ${cameraPanel ? this._badge('camera',cameraActive?'video':'video-outline',cameraActive?'Kamera · Live':'Kamera') : ''}
         ${rooms.length ? this._badge('rooms','floor-plan',this._selected.size ? `${this._selected.size} Räume` : `${rooms.length} Räume`) : ''}
         ${settingsPanel ? this._badge('settings','tune-variant',`${({sweeping:'Saugen',mopping:'Wischen',sweeping_and_mopping:'Saugen & Wischen',mopping_after_sweeping:'Saugen → Wischen'})[selectedMode] || 'Saugkraft'}${mopping && water ? ` · ${waterLevel}` : ''}`) : ''}
         ${dockPanel ? this._badge('dock','home-import-outline','Station') : ''}
         ${maintenancePanel ? this._badge('maintenance','tools','Wartung') : ''}${toolsPanel ? this._badge('tools','dots-horizontal','Extras') : ''}
+        ${cameraPanel ? this._badge('camera',cameraActive?'video':'video-outline',cameraActive?'Kamera · Live':'Kamera') : ''}
       </div>
       <div id="dc-flyout" data-key="flyout" class="flyout" role="dialog" aria-modal="false" style="${esc(flyoutStyle)}" ${popoverSupported?'popover="auto"':this._isFlyoutOpen()?'':'hidden'} aria-label="${esc(titles[this._panel] || 'Einstellungen')}">
         <div class="flyout-title"><strong>${esc(titles[this._panel] || '')}</strong><button data-action="close-panel" aria-label="Schließen"><ha-icon icon="mdi:close"></ha-icon></button></div>
@@ -352,7 +353,7 @@ class DahoamDreameCard extends HTMLElement {
       <footer><button data-action="info">Gerätedetails ↗</button></footer></ha-card>`;
     syncChildren(this.shadowRoot,template.content);
     const flyout=this.shadowRoot.querySelector('.flyout');
-    if(flyout){flyout.onbeforetoggle=event=>{if(event.newState==='closed'){if(this._panel==='camera')this._releaseCamera();this._panel=undefined;this._anchor=undefined;for(const button of this.shadowRoot.querySelectorAll('[data-action^="panel-"]'))button.setAttribute('aria-expanded','false');}};flyout.ontoggle=()=>{if(!this._isFlyoutOpen()){this._panel=undefined;this._anchor=undefined;this._updateBadges();}};}
+    if(flyout){flyout.onbeforetoggle=event=>{if(event.newState==='closed'){if(this._panel==='camera')this._releaseCamera();this._panel=undefined;this._anchor=undefined;for(const button of this.shadowRoot.querySelectorAll('[data-action^="panel-"]'))button.setAttribute('aria-expanded','false');}};flyout.ontoggle=()=>{if(!this._isFlyoutOpen()){this._releaseCamera();this._panel=undefined;this._anchor=undefined;this._updateBadges();}};}
     this._syncNativeCamera();this._positionFlyout();this._bindMap();
     const img=this.shadowRoot.querySelector('.map img');
     if(img) {

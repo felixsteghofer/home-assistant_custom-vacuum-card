@@ -18,13 +18,21 @@ for(const width of [1000,390]){
  });
  const root=page.locator('dahoam-vacuum-card'),badge=root.locator('[data-action="panel-camera"]');
  await badge.click();assert.equal(await page.evaluate(()=>calls.length),0);assert.equal(await root.locator('test-native-camera').count(),0);
- await root.locator('[data-action="camera-start"]').click();await root.locator('test-native-camera').waitFor({state:'attached'});assert.deepEqual(await page.evaluate(()=>nativeConfigs[0]),{type:'picture-entity',entity:'camera.live',camera_view:'live',show_name:false,show_state:false,fit_mode:'contain',tap_action:{action:'more-info'}});
+ await root.locator('[data-action="camera-start"]').click();await root.locator('test-native-camera').waitFor({state:'attached'});assert.deepEqual(await page.evaluate(()=>nativeConfigs[0]),{type:'picture-entity',entity:'camera.live',camera_view:'live',show_name:false,show_state:false,fit_mode:'contain',tap_action:{action:'none'},hold_action:{action:'none'},double_tap_action:{action:'none'}});
  assert.equal(await page.evaluate(()=>calls[0][1]),'turn_on');
  // Entity updates preserve the live image node and URL instead of reconnecting.
  assert.equal(await page.evaluate(()=>{const i=card.shadowRoot.querySelector('test-native-camera');card.hass={...hass};return i===card.shadowRoot.querySelector('test-native-camera')}),true);
  const box=await root.locator('.flyout').boundingBox();assert.ok(box.x>=0 && box.x+box.width<=width);
  await page.keyboard.press('Escape');await page.waitForFunction(()=>calls.some(c=>c[1]==='turn_off'));
  assert.equal(await root.locator('test-native-camera').count(),0);assert.equal(await page.evaluate(()=>hass.states['camera.live'].state),'idle');
+ // Native dismissal may arrive only as toggle after panel state was cleared.
+ await badge.click();await root.locator('[data-action="camera-start"]').click();
+ await root.locator('test-native-camera').waitFor({state:'attached'});
+ await page.evaluate(()=>{card._panel=undefined;card.shadowRoot.querySelector('.flyout').hidePopover()});
+ await page.waitForFunction(()=>hass.states['camera.live'].state==='idle');
+ assert.equal(await root.locator('test-native-camera').count(),0);
+ assert.equal(await page.evaluate(()=>card._cameraOwned),false);
+ assert.equal(await root.locator('.badges button').last().getAttribute('data-action'),'panel-camera');
  // A stream that was already running is viewable but not owned or stopped on close.
  await page.evaluate(()=>{hass.states['camera.live'].state='streaming';card.hass={...hass};calls.length=0});
  await badge.click();await page.locator('#outside').click();assert.equal(await page.evaluate(()=>calls.length),0);

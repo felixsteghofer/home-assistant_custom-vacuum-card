@@ -5,7 +5,7 @@ A compact Home Assistant custom card with a camera map, room selection, cleaning
 ## Install
 
 1. Copy `dahoam-dreame-card.js` to `/config/www/dahoam-dreame-card.js`.
-2. Add `/local/dahoam-dreame-card.js?v=1.7.1` as a **JavaScript module** in **Settings → Dashboards → Resources**.
+2. Add `/local/dahoam-dreame-card.js?v=1.7.2` as a **JavaScript module** in **Settings → Dashboards → Resources**.
 3. Hard-refresh Home Assistant, then **Add card → Dahoam Vacuum**. Choose the vacuum and its related entities. See `examples/winky.yaml` and `examples/dobby.yaml`.
 
 No build step or runtime dependencies. Existing `custom:dahoam-dreame-card` configurations continue to work. Do not edit Home Assistant's `.storage` files.
@@ -26,8 +26,8 @@ No build step or runtime dependencies. Existing `custom:dahoam-dreame-card` conf
 Configure `live_camera_entity` to add a compact **Kamera** badge. It opens a flyout
 with explicit Start/Stop controls and Home Assistant’s native
 [Picture Entity camera card](https://www.home-assistant.io/dashboards/picture-entity/)
-configured with `camera_view: live`. Tapping the picture opens HA’s native camera
-details. HA handles authentication and media rendering; the vacuum card no longer
+configured with `camera_view: live`. Playback stays in that card so a second
+camera dialog cannot retain a separate viewer. The Camera badge is last in the row. HA handles authentication and media rendering; the vacuum card no longer
 builds camera stream URLs or renders its own video image. Merely opening
 the dashboard or flyout does not start the camera. The optional companion
 `dreame_live_camera` integration supplies Winky's physical camera.
