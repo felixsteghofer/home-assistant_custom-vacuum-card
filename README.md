@@ -5,7 +5,7 @@ A compact Home Assistant custom card with a camera map, room selection, cleaning
 ## Install
 
 1. Copy `dahoam-dreame-card.js` to `/config/www/dahoam-dreame-card.js`.
-2. Add `/local/dahoam-dreame-card.js?v=1.7.0` as a **JavaScript module** in **Settings → Dashboards → Resources**.
+2. Add `/local/dahoam-dreame-card.js?v=1.7.1` as a **JavaScript module** in **Settings → Dashboards → Resources**.
 3. Hard-refresh Home Assistant, then **Add card → Dahoam Vacuum**. Choose the vacuum and its related entities. See `examples/winky.yaml` and `examples/dobby.yaml`.
 
 No build step or runtime dependencies. Existing `custom:dahoam-dreame-card` configurations continue to work. Do not edit Home Assistant's `.storage` files.
@@ -24,14 +24,18 @@ No build step or runtime dependencies. Existing `custom:dahoam-dreame-card` conf
 ## Live camera
 
 Configure `live_camera_entity` to add a compact **Kamera** badge. It opens a flyout
-with explicit Start/Stop controls and an authenticated HA MJPEG feed. Merely opening
+with explicit Start/Stop controls and Home Assistant’s native
+[Picture Entity camera card](https://www.home-assistant.io/dashboards/picture-entity/)
+configured with `camera_view: live`. Tapping the picture opens HA’s native camera
+details. HA handles authentication and media rendering; the vacuum card no longer
+builds camera stream URLs or renders its own video image. Merely opening
 the dashboard or flyout does not start the camera. The optional companion
 `dreame_live_camera` integration supplies Winky's physical camera.
 
 A session started by this card is explicitly stopped when its camera flyout is
 closed (outside click, Escape, close button, switching panels, scrolling the badge
-out of view), when the page is hidden, or when the card is removed. The image source
-is cleared too, covering webviews that retain an MJPEG connection after dismissal.
+out of view), when the page is hidden, or when the card is removed. The nested camera card
+is removed too; explicit stop covers webviews that retain a connection after dismissal.
 A session already running when the flyout opens remains under its original owner's
 control unless Stop is pressed. The backend's maximum session duration still applies.
 Close MOVAhome's live view before starting. PINs stay in integration options and

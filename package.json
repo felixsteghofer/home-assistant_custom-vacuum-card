@@ -1,6 +1,6 @@
 {
   "name": "dahoam-vacuum-card",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "private": true,
   "type": "module",
   "scripts": {

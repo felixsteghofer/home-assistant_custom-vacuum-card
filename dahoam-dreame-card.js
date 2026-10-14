@@ -1,4 +1,4 @@
-/** Dahoam Vacuum Card v1.7.0 — independent implementation, MIT. */
+/** Dahoam Vacuum Card v1.7.1 — independent implementation, MIT. */
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const available = entity => entity && !['unknown', 'unavailable'].includes(entity.state);
 const validNumber = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
@@ -16,7 +16,7 @@ function syncChildren(parent, desired) {
       if (current.nodeType === 1) {
         for (const attr of [...current.attributes]) if (!next.hasAttribute(attr.name)) current.removeAttribute(attr.name);
         for (const attr of [...next.attributes]) if (current.getAttribute(attr.name) !== attr.value) current.setAttribute(attr.name, attr.value);
-        syncChildren(current, next);
+        if (!current.hasAttribute("data-native-camera-host")) syncChildren(current, next);
         if (current instanceof HTMLSelectElement && current.value !== next.value) current.value = next.value;
         if (current instanceof HTMLInputElement && current.value !== next.value && current.getRootNode().activeElement !== current) current.value = next.value;
       } else if (current.nodeValue !== next.nodeValue) current.nodeValue = next.nodeValue;
@@ -34,7 +34,7 @@ header{display:flex;align-items:center;gap:12px;padding:16px}.robot{display:grid
 button,select{font:inherit;color:inherit;border:1px solid var(--line);background:transparent;border-radius:8px;min-height:40px;padding:8px 12px;cursor:pointer}button{display:inline-flex;align-items:center;justify-content:center;gap:6px}button:hover{background:var(--soft)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}button:disabled,select:disabled,input:disabled{opacity:.4;cursor:default}.primary{background:var(--accent);border-color:transparent;color:var(--text-primary-color,#fff);font-weight:500;flex:1}.primary:hover{background:var(--accent);filter:brightness(.95)}ha-icon{--mdc-icon-size:20px}
 .badges{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px 6px}.badge{min-height:32px;padding:4px 9px;border-radius:16px;background:var(--secondary-background-color,#f5f5f5);border-color:transparent;font-size:12px;gap:5px}.badge[aria-expanded=true]{background:var(--soft);color:var(--accent)}.badge ha-icon{--mdc-icon-size:16px}.chevron{font-size:12px;opacity:.65}
 .flyout{position:fixed;inset:auto;margin:0;padding:0;width:min(340px,calc(100vw - 16px));max-height:min(70dvh,480px);overflow:auto;color:var(--primary-text-color,#212121);background:var(--card-background-color,#fff);border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 16px #0003;font-family:var(--ha-font-family-body,var(--primary-font-family,inherit));z-index:10}.flyout::backdrop{background:transparent;pointer-events:none}.flyout-title{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;font-size:14px}.flyout-title strong{font-weight:500}.flyout-title button{min-height:32px;min-width:32px;padding:4px;border:0}.flyout section{padding:12px;border-top:1px solid var(--line)}.section-title{display:flex;justify-content:space-between;font-size:12px;color:var(--secondary-text-color,#727272);margin-bottom:8px}.rooms{display:flex;flex-wrap:wrap;gap:6px}.room{min-height:34px;padding:5px 8px;font-size:12px;gap:4px;border-radius:8px}.room ha-icon{--mdc-icon-size:16px}.room[aria-pressed=true]{color:var(--accent);background:var(--soft);border-color:var(--accent)}.room-selection{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.room-selection .section-title{margin:0}.room-selection button{min-height:34px;padding:5px 8px;font-size:12px}.room-tools{display:flex;gap:6px;margin-top:12px}.room-tools button{min-height:36px;font-size:12px}.room-tools .primary{flex:1}.settings{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:grid;gap:6px;font-size:12px;color:var(--secondary-text-color,#727272)}select{width:100%;min-width:0;min-height:40px;font-size:13px;color:var(--primary-text-color,#212121);background:var(--card-background-color,#fff)}.water,.carpet-setting,.water-hint{grid-column:1/-1}.water-top,.carpet-setting{display:flex;align-items:center;justify-content:space-between;gap:8px}.water input{width:100%;accent-color:var(--accent);margin:5px 0}.water output{color:var(--primary-text-color,#212121);font-weight:500}.water-hint{font-size:11px;line-height:16px;color:var(--secondary-text-color,#727272)}.carpet-setting{font-size:13px}.carpet-setting button{min-height:34px;padding:4px 12px}.carpet-setting button[aria-checked=true]{color:var(--accent);background:var(--soft)}.dock{display:flex;gap:8px}.dock button{flex:1;flex-direction:column;font-size:12px;padding:10px 4px;min-height:60px}.dock ha-icon{color:var(--accent)}.supplies{display:grid;grid-template-columns:1fr 1fr;gap:12px}.supply{font-size:12px}.supply progress{display:block;width:100%;height:5px;accent-color:var(--accent);margin-top:6px}
-.live-image{display:block;width:100%;aspect-ratio:640/356;object-fit:contain;background:#111;border-radius:8px}.camera-status{font-size:12px;color:var(--secondary-text-color);margin:8px 0}.camera-controls{display:flex;gap:8px}.camera-controls button{flex:1}.camera-hint{font-size:11px;line-height:16px;color:var(--secondary-text-color);margin:8px 0 0}
+.camera-media>*{display:block;width:100%}.camera-status{font-size:12px;color:var(--secondary-text-color);margin:8px 0}.camera-controls{display:flex;gap:8px}.camera-controls button{flex:1}.camera-hint{font-size:11px;line-height:16px;color:var(--secondary-text-color);margin:8px 0 0}
 .notice{margin:0 16px 12px;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--warning-color,#ff9800) 10%,transparent);font-size:12px;line-height:18px}.error{color:var(--error-color,#db4437)}footer{padding:0 12px 6px;text-align:right}footer button{min-height:28px;padding:4px;border:0;font-size:11px;color:var(--secondary-text-color,#727272)}
 @media(max-width:380px){.map-viewport{height:280px}.controls button{font-size:12px;padding:8px 10px}.badge{font-size:11px}.settings{gap:8px}}
 @media(prefers-reduced-motion:no-preference){button{transition:background .12s}}
@@ -233,23 +233,31 @@ class DahoamDreameCard extends HTMLElement {
       return url.href;
     } catch { return ''; }
   }
-  _liveURL() {
-    const camera=this._entity('live_camera_entity');
-    if(this._panel!=='camera' || this._cameraBusy || camera?.state!=='streaming')return '';
+  async _syncNativeCamera() {
+    const host=this.shadowRoot.querySelector('[data-native-camera-host]');
+    if(!host || this._panel!=='camera' || this._cameraBusy || this._entity('live_camera_entity')?.state!=='streaming'){
+      this._detachCameraCard();return;
+    }
+    if(this._nativeCameraCard?.parentElement===host){this._nativeCameraCard.hass=this._hass;return;}
+    if(this._nativeCameraLoading)return;
+    this._nativeCameraLoading=true;
+    const entity=this._config.live_camera_entity;
     try {
-      const base=new URL(this._hass.hassUrl ? this._hass.hassUrl('/') : location.origin);
-      const url=new URL(camera.attributes.entity_picture,base);
-      if(url.origin!==base.origin || url.pathname!==`/api/camera_proxy/${this._config.live_camera_entity}`)return '';
-      url.pathname=`/api/camera_proxy_stream/${this._config.live_camera_entity}`;
-      return url.href;
-    } catch {return '';}
+      const helpers=await window.loadCardHelpers();
+      if(!host.isConnected || this._panel!=='camera' || this._cameraBusy || this._config.live_camera_entity!==entity || this._entity('live_camera_entity')?.state!=='streaming')return;
+      // HA owns camera authentication, media rendering and the native more-info action.
+      const card=helpers.createCardElement({type:'picture-entity',entity,camera_view:'live',show_name:false,show_state:false,fit_mode:'contain',tap_action:{action:'more-info'}});
+      card.hass=this._hass;
+      this._nativeCameraCard=card;host.replaceChildren(card);
+      this._positionFlyout();
+    } catch(error){this._cameraError='Home Assistant Kamerakarte konnte nicht geladen werden';this._render();}
+    finally {this._nativeCameraLoading=false;}
   }
-  _detachLiveImage() {
-    const image=this.shadowRoot.querySelector('.live-image');
-    if(image){image.src='';image.removeAttribute('src');image.remove();}
+  _detachCameraCard() {
+    this._nativeCameraCard?.remove();this._nativeCameraCard=undefined;
   }
   _releaseCamera() {
-    this._detachLiveImage();
+    this._detachCameraCard();
     if(!this._cameraOwned)return;
     this._cameraOwned=false;
     const hass=this._hass,entity_id=this._config.live_camera_entity;
@@ -263,7 +271,7 @@ class DahoamDreameCard extends HTMLElement {
     this._cameraBusy=true;this._cameraError='';
     const entity_id=this._config.live_camera_entity;
     if(start)this._cameraOwned=true;
-    else {this._cameraOwned=false;this._detachLiveImage();}
+    else {this._cameraOwned=false;this._detachCameraCard();}
     this._render();
     try {await this._hass.callService('camera',start?'turn_on':'turn_off',{entity_id});}
     catch(error){this._cameraError=error?.message || 'Kamera-Aktion fehlgeschlagen';if(start)this._cameraOwned=false;}
@@ -314,8 +322,7 @@ class DahoamDreameCard extends HTMLElement {
     const toolsPanel = ['locate','clean_spot'].some(action=>this._supports(action)) ? `<section data-key="tools"><div class="dock">${this._supports('locate')?this._button('locate','volume-high','Finden',!online):''}${this._supports('clean_spot')?this._button('clean_spot','target','Punktreinigung',!online || running):''}</div></section>` : '';
 
     const camera=this._entity('live_camera_entity'),cameraActive=camera?.state==='streaming';
-    const liveURL=this._liveURL();
-    const cameraPanel=camera ? `<section data-key="camera"><div class="camera-media">${liveURL ? `<img class="live-image" data-key="live-image" alt="Live-Kamera des Staubsaugers" src="${esc(liveURL)}">` : ''}</div><div class="camera-status" role="status">${esc(this._cameraBusy ? 'Verbindung wird geändert …' : !available(camera) ? 'Kamera nicht verfügbar' : cameraActive ? 'Live' : 'Kamera aus')}</div>${this._cameraError ? `<div class="error" role="alert">${esc(this._cameraError)}</div>` : ''}<div class="camera-controls">${this._button('camera-start','video','Starten',this._cameraBusy || !available(camera) || cameraActive || !(Number(camera.attributes.supported_features)&1) || !this._hasService('camera','turn_on'))}${this._button('camera-stop','video-off','Stoppen',this._cameraBusy || !available(camera) || !cameraActive || !this._hasService('camera','turn_off'))}</div><p class="camera-hint">MOVAhome-Liveansicht vorher schließen. ${this._cameraOwned ? 'Beim Schließen wird die hier gestartete Kamera gestoppt.' : 'Startet erst mit „Starten“.'}${validNumber(camera.attributes.max_duration) ? ` Sitzung: maximal ${measure(camera.attributes.max_duration)} s.` : ''}</p></section>` : '';
+    const cameraPanel=camera ? `<section data-key="camera"><div class="camera-media" data-native-camera-host data-key="native-camera-host"></div><div class="camera-status" role="status">${esc(this._cameraBusy ? 'Verbindung wird geändert …' : !available(camera) ? 'Kamera nicht verfügbar' : cameraActive ? 'Live' : 'Kamera aus')}</div>${this._cameraError ? `<div class="error" role="alert">${esc(this._cameraError)}</div>` : ''}<div class="camera-controls">${this._button('camera-start','video','Starten',this._cameraBusy || !available(camera) || cameraActive || !(Number(camera.attributes.supported_features)&1) || !this._hasService('camera','turn_on'))}${this._button('camera-stop','video-off','Stoppen',this._cameraBusy || !available(camera) || !cameraActive || !this._hasService('camera','turn_off'))}</div><p class="camera-hint">MOVAhome-Liveansicht vorher schließen. ${this._cameraOwned ? 'Beim Schließen wird die hier gestartete Kamera gestoppt.' : 'Startet erst mit „Starten“.'}${validNumber(camera.attributes.max_duration) ? ` Sitzung: maximal ${measure(camera.attributes.max_duration)} s.` : ''}</p></section>` : '';
     const panels={camera:cameraPanel,rooms:roomsPanel,settings:settingsPanel,dock:dockPanel,maintenance:maintenancePanel,tools:toolsPanel};
     const titles={camera:'Live-Kamera',rooms:'Räume auswählen',settings:'Reinigung einstellen',dock:'Station',maintenance:'Wartung',tools:'Weitere Aktionen'};
     const popoverSupported=typeof HTMLElement.prototype.showPopover==='function';
@@ -346,7 +353,7 @@ class DahoamDreameCard extends HTMLElement {
     syncChildren(this.shadowRoot,template.content);
     const flyout=this.shadowRoot.querySelector('.flyout');
     if(flyout){flyout.onbeforetoggle=event=>{if(event.newState==='closed'){if(this._panel==='camera')this._releaseCamera();this._panel=undefined;this._anchor=undefined;for(const button of this.shadowRoot.querySelectorAll('[data-action^="panel-"]'))button.setAttribute('aria-expanded','false');}};flyout.ontoggle=()=>{if(!this._isFlyoutOpen()){this._panel=undefined;this._anchor=undefined;this._updateBadges();}};}
-    this._positionFlyout();this._bindMap();
+    this._syncNativeCamera();this._positionFlyout();this._bindMap();
     const img=this.shadowRoot.querySelector('.map img');
     if(img) {
       img.onload=()=>{img.hidden=false;img.parentElement.querySelector('.placeholder')?.remove();};
