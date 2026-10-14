@@ -11,3 +11,4 @@ repeats: 1
 water_level_entity: number.winky_wetness_level
 default_water_level: 14
 live_camera_entity: camera.winky_live
+live_camera_path: /dashboard-dahoam/winky-camera

@@ -1,4 +1,4 @@
-/** Dahoam Vacuum Card v1.7.2 — independent implementation, MIT. */
+/** Dahoam Vacuum Card v1.8.0 — independent implementation, MIT. */
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const available = entity => entity && !['unknown', 'unavailable'].includes(entity.state);
 const validNumber = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
@@ -16,7 +16,7 @@ function syncChildren(parent, desired) {
       if (current.nodeType === 1) {
         for (const attr of [...current.attributes]) if (!next.hasAttribute(attr.name)) current.removeAttribute(attr.name);
         for (const attr of [...next.attributes]) if (current.getAttribute(attr.name) !== attr.value) current.setAttribute(attr.name, attr.value);
-        if (!current.hasAttribute("data-native-camera-host")) syncChildren(current, next);
+        syncChildren(current, next);
         if (current instanceof HTMLSelectElement && current.value !== next.value) current.value = next.value;
         if (current instanceof HTMLInputElement && current.value !== next.value && current.getRootNode().activeElement !== current) current.value = next.value;
       } else if (current.nodeValue !== next.nodeValue) current.nodeValue = next.nodeValue;
@@ -34,7 +34,7 @@ header{display:flex;align-items:center;gap:12px;padding:16px}.robot{display:grid
 button,select{font:inherit;color:inherit;border:1px solid var(--line);background:transparent;border-radius:8px;min-height:40px;padding:8px 12px;cursor:pointer}button{display:inline-flex;align-items:center;justify-content:center;gap:6px}button:hover{background:var(--soft)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}button:disabled,select:disabled,input:disabled{opacity:.4;cursor:default}.primary{background:var(--accent);border-color:transparent;color:var(--text-primary-color,#fff);font-weight:500;flex:1}.primary:hover{background:var(--accent);filter:brightness(.95)}ha-icon{--mdc-icon-size:20px}
 .badges{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px 6px}.badge{min-height:32px;padding:4px 9px;border-radius:16px;background:var(--secondary-background-color,#f5f5f5);border-color:transparent;font-size:12px;gap:5px}.badge[aria-expanded=true]{background:var(--soft);color:var(--accent)}.badge ha-icon{--mdc-icon-size:16px}.chevron{font-size:12px;opacity:.65}
 .flyout{position:fixed;inset:auto;margin:0;padding:0;width:min(340px,calc(100vw - 16px));max-height:min(70dvh,480px);overflow:auto;color:var(--primary-text-color,#212121);background:var(--card-background-color,#fff);border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 16px #0003;font-family:var(--ha-font-family-body,var(--primary-font-family,inherit));z-index:10}.flyout::backdrop{background:transparent;pointer-events:none}.flyout-title{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;font-size:14px}.flyout-title strong{font-weight:500}.flyout-title button{min-height:32px;min-width:32px;padding:4px;border:0}.flyout section{padding:12px;border-top:1px solid var(--line)}.section-title{display:flex;justify-content:space-between;font-size:12px;color:var(--secondary-text-color,#727272);margin-bottom:8px}.rooms{display:flex;flex-wrap:wrap;gap:6px}.room{min-height:34px;padding:5px 8px;font-size:12px;gap:4px;border-radius:8px}.room ha-icon{--mdc-icon-size:16px}.room[aria-pressed=true]{color:var(--accent);background:var(--soft);border-color:var(--accent)}.room-selection{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.room-selection .section-title{margin:0}.room-selection button{min-height:34px;padding:5px 8px;font-size:12px}.room-tools{display:flex;gap:6px;margin-top:12px}.room-tools button{min-height:36px;font-size:12px}.room-tools .primary{flex:1}.settings{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:grid;gap:6px;font-size:12px;color:var(--secondary-text-color,#727272)}select{width:100%;min-width:0;min-height:40px;font-size:13px;color:var(--primary-text-color,#212121);background:var(--card-background-color,#fff)}.water,.carpet-setting,.water-hint{grid-column:1/-1}.water-top,.carpet-setting{display:flex;align-items:center;justify-content:space-between;gap:8px}.water input{width:100%;accent-color:var(--accent);margin:5px 0}.water output{color:var(--primary-text-color,#212121);font-weight:500}.water-hint{font-size:11px;line-height:16px;color:var(--secondary-text-color,#727272)}.carpet-setting{font-size:13px}.carpet-setting button{min-height:34px;padding:4px 12px}.carpet-setting button[aria-checked=true]{color:var(--accent);background:var(--soft)}.dock{display:flex;gap:8px}.dock button{flex:1;flex-direction:column;font-size:12px;padding:10px 4px;min-height:60px}.dock ha-icon{color:var(--accent)}.supplies{display:grid;grid-template-columns:1fr 1fr;gap:12px}.supply{font-size:12px}.supply progress{display:block;width:100%;height:5px;accent-color:var(--accent);margin-top:6px}
-.camera-media>*{display:block;width:100%}.camera-status{font-size:12px;color:var(--secondary-text-color);margin:8px 0}.camera-controls{display:flex;gap:8px}.camera-controls button{flex:1}.camera-hint{font-size:11px;line-height:16px;color:var(--secondary-text-color);margin:8px 0 0}
+
 .notice{margin:0 16px 12px;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--warning-color,#ff9800) 10%,transparent);font-size:12px;line-height:18px}.error{color:var(--error-color,#db4437)}footer{padding:0 12px 6px;text-align:right}footer button{min-height:28px;padding:4px;border:0;font-size:11px;color:var(--secondary-text-color,#727272)}
 @media(max-width:380px){.map-viewport{height:280px}.controls button{font-size:12px;padding:8px 10px}.badge{font-size:11px}.settings{gap:8px}}
 @media(prefers-reduced-motion:no-preference){button{transition:background .12s}}
@@ -48,7 +48,6 @@ class DahoamDreameCard extends HTMLElement {
       if(button.dataset.action){if(button.dataset.action.startsWith('panel-'))event.preventDefault();this._act(button.dataset.action,event.detail===0);}
       else if(button.dataset.room){const id=Number(button.dataset.room);this._selected.has(id)?this._selected.delete(id):this._selected.add(id);this._render();}
     });
-    this._visibilityChanged=()=>{if(document.hidden && this._panel==='camera')this._closeFlyout(false);};
     this.shadowRoot.addEventListener('keydown',event=>{if(event.key==='Escape' && this._isFlyoutOpen() && !event.defaultPrevented){event.preventDefault();this._closeFlyout();}});
     this.shadowRoot.addEventListener('change', event => {if(event.target.dataset.setting)this._setting(event.target.dataset.setting,event.target.value);});
     this.shadowRoot.addEventListener('input', event => {if(event.target.dataset.setting==='water'){this._draftWater=Number(event.target.value);this.shadowRoot.querySelector('[data-water-output]').textContent=event.target.value;}});
@@ -63,6 +62,7 @@ class DahoamDreameCard extends HTMLElement {
     for (const [key, domain] of Object.entries({map_entity:'camera',live_camera_entity:'camera',cleaning_mode_entity:'select',water_level_entity:'number',battery_entity:'sensor',area_entity:'sensor',time_entity:'sensor',error_entity:'sensor',main_brush_entity:'sensor',side_brush_entity:'sensor',filter_entity:'sensor',sensor_cleaning_entity:'sensor',carpet_mode_entity:'switch',wash_entity:'button',dry_entity:'button',empty_entity:'button'})) {
       if (config[key] && !new RegExp(`^${domain}\\.[a-z0-9_]+$`).test(config[key])) throw new Error(`${key} must be a ${domain} entity.`);
     }
+    if(config.live_camera_path && (!/^\/(?!\/)/.test(config.live_camera_path) || /[?#]/.test(config.live_camera_path)))throw new Error('live_camera_path must be a local dashboard path.');
     if (config.repeats !== undefined && ![1,2,3].includes(config.repeats)) throw new Error('repeats must be 1, 2 or 3.');
     if(config.default_water_level !== undefined && (!Number.isInteger(config.default_water_level) || config.default_water_level<1 || config.default_water_level>32))throw new Error('default_water_level must be an integer from 1 to 32.');
     this._draftMode=undefined;this._draftWater=config.default_water_level ?? 14;
@@ -74,7 +74,6 @@ class DahoamDreameCard extends HTMLElement {
   getCardSize() { return this._config?.show_map === false ? 8 : 13; }
   getGridOptions() { return {columns:12, min_columns:6}; }
   connectedCallback() {
-    document.addEventListener('visibilitychange',this._visibilityChanged);
     this._reposition ||= ()=>{if(this._isFlyoutOpen() && !this._positionFrame)this._positionFrame=requestAnimationFrame(()=>{this._positionFrame=undefined;this._positionFlyout();});};
     window.addEventListener('resize',this._reposition);window.addEventListener('scroll',this._reposition,true);window.visualViewport?.addEventListener('resize',this._reposition);window.visualViewport?.addEventListener('scroll',this._reposition);
     clearInterval(this._timer);
@@ -84,7 +83,7 @@ class DahoamDreameCard extends HTMLElement {
     }, 5000);
     this._render();
   }
-  disconnectedCallback() {document.removeEventListener('visibilitychange',this._visibilityChanged);clearInterval(this._timer);cancelAnimationFrame(this._positionFrame);this._positionFrame=undefined;this._closeFlyout(false);window.removeEventListener('resize',this._reposition);window.removeEventListener('scroll',this._reposition,true);window.visualViewport?.removeEventListener('resize',this._reposition);window.visualViewport?.removeEventListener('scroll',this._reposition);}
+  disconnectedCallback() {clearInterval(this._timer);cancelAnimationFrame(this._positionFrame);this._positionFrame=undefined;this._closeFlyout(false);window.removeEventListener('resize',this._reposition);window.removeEventListener('scroll',this._reposition,true);window.visualViewport?.removeEventListener('resize',this._reposition);window.visualViewport?.removeEventListener('scroll',this._reposition);}
   _entity(key) { return this._hass?.states[this._config?.[key]]; }
   _hasService(domain, service) { return !!this._hass?.services?.[domain]?.[service]; }
   _supports(action) {
@@ -100,7 +99,6 @@ class DahoamDreameCard extends HTMLElement {
   }
   _openFlyout(panel,keyboard=false) {
     if(this._panel===panel && this._isFlyoutOpen()){this._closeFlyout();return;}
-    if(this._panel==='camera' && panel!=='camera')this._releaseCamera();
     this._panel=panel;this._anchor=this.shadowRoot.querySelector(`[data-action="panel-${panel}"]`);
     if(!this._anchor)return;
     this._render();const flyout=this.shadowRoot.querySelector('.flyout');
@@ -115,7 +113,6 @@ class DahoamDreameCard extends HTMLElement {
     if(keyboard)flyout.querySelector('select,input,button:not([data-action="close-panel"]):not(:disabled)')?.focus({preventScroll:true});
   }
   _closeFlyout(restoreFocus=true) {
-    if(this._cameraOwned || this._panel==='camera')this._releaseCamera();
     const flyout=this.shadowRoot.querySelector('.flyout'),anchor=this._anchor;
     if(flyout){if(typeof flyout.hidePopover==='function'){if(flyout.matches(':popover-open'))flyout.hidePopover();}else flyout.hidden=true;}
     document.removeEventListener('pointerdown',this._fallbackOutside,true);document.removeEventListener('keydown',this._fallbackEscape);
@@ -233,49 +230,23 @@ class DahoamDreameCard extends HTMLElement {
       return url.href;
     } catch { return ''; }
   }
-  async _syncNativeCamera() {
-    const host=this.shadowRoot.querySelector('[data-native-camera-host]');
-    if(!host || this._panel!=='camera' || this._cameraBusy || this._entity('live_camera_entity')?.state!=='streaming'){
-      this._detachCameraCard();return;
-    }
-    if(this._nativeCameraCard?.parentElement===host){this._nativeCameraCard.hass=this._hass;return;}
-    if(this._nativeCameraLoading)return;
-    this._nativeCameraLoading=true;
-    const entity=this._config.live_camera_entity;
-    try {
-      const helpers=await window.loadCardHelpers();
-      if(!host.isConnected || this._panel!=='camera' || this._cameraBusy || this._config.live_camera_entity!==entity || this._entity('live_camera_entity')?.state!=='streaming')return;
-      // HA owns camera authentication and media rendering. Keep playback in this surface
-      // so a second details dialog cannot outlive the session controls.
-      const card=helpers.createCardElement({type:'picture-entity',entity,camera_view:'live',show_name:false,show_state:false,fit_mode:'contain',tap_action:{action:'none'},hold_action:{action:'none'},double_tap_action:{action:'none'}});
-      card.hass=this._hass;
-      this._nativeCameraCard=card;host.replaceChildren(card);
-      this._positionFlyout();
-    } catch(error){this._cameraError='Home Assistant Kamerakarte konnte nicht geladen werden';this._render();}
-    finally {this._nativeCameraLoading=false;}
-  }
-  _detachCameraCard() {
-    this._nativeCameraCard?.remove();this._nativeCameraCard=undefined;
-  }
-  _releaseCamera() {
-    this._detachCameraCard();
-    if(!this._cameraOwned)return;
-    this._cameraOwned=false;
-    const hass=this._hass,entity_id=this._config.live_camera_entity;
-    // Explicit stop also covers webviews retaining a removed MJPEG request.
-    hass.callService('camera','turn_off',{entity_id}).catch(error=>{this._cameraError=error?.message || 'Kamera konnte nicht gestoppt werden';this._render();});
-  }
-  async _cameraCommand(start) {
+  async _openCamera() {
     const camera=this._entity('live_camera_entity');
-    if(this._cameraBusy || !available(camera) || !(Number(camera.attributes.supported_features)&1) || !this._hasService('camera',start?'turn_on':'turn_off'))return;
-    if(start && camera.state==='streaming')return;
-    this._cameraBusy=true;this._cameraError='';
-    const entity_id=this._config.live_camera_entity;
-    if(start)this._cameraOwned=true;
-    else {this._cameraOwned=false;this._detachCameraCard();}
-    this._render();
-    try {await this._hass.callService('camera',start?'turn_on':'turn_off',{entity_id});}
-    catch(error){this._cameraError=error?.message || 'Kamera-Aktion fehlgeschlagen';if(start)this._cameraOwned=false;}
+    if(this._cameraBusy || !available(camera))return;
+    this._closeFlyout(false);
+    this._cameraBusy=true;this._error='';this._render();
+    try {
+      if(camera.state!=='streaming') {
+        if(!(Number(camera.attributes.supported_features)&1) || !this._hasService('camera','turn_on'))throw new Error('Kamera kann nicht gestartet werden.');
+        await this._hass.callService('camera','turn_on',{entity_id:this._config.live_camera_entity});
+      }
+      if(this._config.live_camera_path){
+        history.pushState(null,'',this._config.live_camera_path);
+        window.dispatchEvent(new Event('location-changed'));
+      } else {
+        this.dispatchEvent(new CustomEvent('hass-more-info',{bubbles:true,composed:true,detail:{entityId:this._config.live_camera_entity}}));
+      }
+    } catch(error){this._error=error?.message || 'Kamera konnte nicht gestartet werden';}
     finally {this._cameraBusy=false;this._render();}
   }
   _refreshMap() {
@@ -323,9 +294,8 @@ class DahoamDreameCard extends HTMLElement {
     const toolsPanel = ['locate','clean_spot'].some(action=>this._supports(action)) ? `<section data-key="tools"><div class="dock">${this._supports('locate')?this._button('locate','volume-high','Finden',!online):''}${this._supports('clean_spot')?this._button('clean_spot','target','Punktreinigung',!online || running):''}</div></section>` : '';
 
     const camera=this._entity('live_camera_entity'),cameraActive=camera?.state==='streaming';
-    const cameraPanel=camera ? `<section data-key="camera"><div class="camera-media" data-native-camera-host data-key="native-camera-host"></div><div class="camera-status" role="status">${esc(this._cameraBusy ? 'Verbindung wird geändert …' : !available(camera) ? 'Kamera nicht verfügbar' : cameraActive ? 'Live' : 'Kamera aus')}</div>${this._cameraError ? `<div class="error" role="alert">${esc(this._cameraError)}</div>` : ''}<div class="camera-controls">${this._button('camera-start','video','Starten',this._cameraBusy || !available(camera) || cameraActive || !(Number(camera.attributes.supported_features)&1) || !this._hasService('camera','turn_on'))}${this._button('camera-stop','video-off','Stoppen',this._cameraBusy || !available(camera) || !cameraActive || !this._hasService('camera','turn_off'))}</div><p class="camera-hint">MOVAhome-Liveansicht vorher schließen. ${this._cameraOwned ? 'Beim Schließen wird die hier gestartete Kamera gestoppt.' : 'Startet erst mit „Starten“.'}${validNumber(camera.attributes.max_duration) ? ` Sitzung: maximal ${measure(camera.attributes.max_duration)} s.` : ''}</p></section>` : '';
-    const panels={camera:cameraPanel,rooms:roomsPanel,settings:settingsPanel,dock:dockPanel,maintenance:maintenancePanel,tools:toolsPanel};
-    const titles={camera:'Live-Kamera',rooms:'Räume auswählen',settings:'Reinigung einstellen',dock:'Station',maintenance:'Wartung',tools:'Weitere Aktionen'};
+    const panels={rooms:roomsPanel,settings:settingsPanel,dock:dockPanel,maintenance:maintenancePanel,tools:toolsPanel};
+    const titles={rooms:'Räume auswählen',settings:'Reinigung einstellen',dock:'Station',maintenance:'Wartung',tools:'Weitere Aktionen'};
     const popoverSupported=typeof HTMLElement.prototype.showPopover==='function';
     const flyoutStyle=this.shadowRoot.querySelector('.flyout')?.getAttribute('style') || '';
     const template = document.createElement('template');
@@ -344,7 +314,7 @@ class DahoamDreameCard extends HTMLElement {
         ${settingsPanel ? this._badge('settings','tune-variant',`${({sweeping:'Saugen',mopping:'Wischen',sweeping_and_mopping:'Saugen & Wischen',mopping_after_sweeping:'Saugen → Wischen'})[selectedMode] || 'Saugkraft'}${mopping && water ? ` · ${waterLevel}` : ''}`) : ''}
         ${dockPanel ? this._badge('dock','home-import-outline','Station') : ''}
         ${maintenancePanel ? this._badge('maintenance','tools','Wartung') : ''}${toolsPanel ? this._badge('tools','dots-horizontal','Extras') : ''}
-        ${cameraPanel ? this._badge('camera',cameraActive?'video':'video-outline',cameraActive?'Kamera · Live':'Kamera') : ''}
+        ${camera ? `<button class="badge" data-action="camera-open" aria-label="Live-Kamera öffnen" ${this._cameraBusy || !available(camera)?'disabled':''}><ha-icon icon="mdi:${cameraActive?'video':'video-outline'}"></ha-icon>${this._cameraBusy?'Kamera …':cameraActive?'Kamera · Live':'Kamera'}</button>` : ''}
       </div>
       <div id="dc-flyout" data-key="flyout" class="flyout" role="dialog" aria-modal="false" style="${esc(flyoutStyle)}" ${popoverSupported?'popover="auto"':this._isFlyoutOpen()?'':'hidden'} aria-label="${esc(titles[this._panel] || 'Einstellungen')}">
         <div class="flyout-title"><strong>${esc(titles[this._panel] || '')}</strong><button data-action="close-panel" aria-label="Schließen"><ha-icon icon="mdi:close"></ha-icon></button></div>
@@ -353,8 +323,8 @@ class DahoamDreameCard extends HTMLElement {
       <footer><button data-action="info">Gerätedetails ↗</button></footer></ha-card>`;
     syncChildren(this.shadowRoot,template.content);
     const flyout=this.shadowRoot.querySelector('.flyout');
-    if(flyout){flyout.onbeforetoggle=event=>{if(event.newState==='closed'){if(this._panel==='camera')this._releaseCamera();this._panel=undefined;this._anchor=undefined;for(const button of this.shadowRoot.querySelectorAll('[data-action^="panel-"]'))button.setAttribute('aria-expanded','false');}};flyout.ontoggle=()=>{if(!this._isFlyoutOpen()){this._releaseCamera();this._panel=undefined;this._anchor=undefined;this._updateBadges();}};}
-    this._syncNativeCamera();this._positionFlyout();this._bindMap();
+    if(flyout){flyout.onbeforetoggle=event=>{if(event.newState==='closed'){this._panel=undefined;this._anchor=undefined;for(const button of this.shadowRoot.querySelectorAll('[data-action^="panel-"]'))button.setAttribute('aria-expanded','false');}};flyout.ontoggle=()=>{if(!this._isFlyoutOpen()){this._panel=undefined;this._anchor=undefined;this._updateBadges();}};}
+    this._positionFlyout();this._bindMap();
     const img=this.shadowRoot.querySelector('.map img');
     if(img) {
       img.onload=()=>{img.hidden=false;img.parentElement.querySelector('.placeholder')?.remove();};
@@ -370,7 +340,7 @@ class DahoamDreameCard extends HTMLElement {
   }
   _act(action,keyboard=false) {
     if(action.startsWith('panel-')){this._openFlyout(action.slice(6),keyboard);return;}
-    if(action==='camera-start' || action==='camera-stop')return this._cameraCommand(action==='camera-start');
+    if(action==='camera-open')return this._openCamera();
     if(action==='close-panel'){this._closeFlyout();return;}
     if(action==='refresh-map'){this._refreshMap();return;}
     if(action==='zoom-in' || action==='zoom-out' || action==='zoom-reset'){this._setMapZoom(action==='zoom-reset'?1:this._zoom+(action==='zoom-in'?.5:-.5));return;}
@@ -423,8 +393,8 @@ class DahoamDreameEditor extends HTMLElement {
     if(!this._hass || !this._config)return;
     if(!this._form){
       this.shadowRoot.innerHTML='<ha-form></ha-form>';this._form=this.shadowRoot.querySelector('ha-form');
-      this._form.schema=[{name:'entity',required:true,selector:{entity:{domain:'vacuum'}}},{name:'name',selector:{text:{}}},{name:'show_map',selector:{boolean:{}}},...Object.entries({map_entity:'camera',live_camera_entity:'camera',cleaning_mode_entity:'select',water_level_entity:'number',battery_entity:'sensor',area_entity:'sensor',time_entity:'sensor',error_entity:'sensor',main_brush_entity:'sensor',side_brush_entity:'sensor',filter_entity:'sensor',sensor_cleaning_entity:'sensor',carpet_mode_entity:'switch',wash_entity:'button',dry_entity:'button',empty_entity:'button'}).map(([name,domain])=>({name,selector:{entity:{domain}}})),{name:'default_water_level',selector:{number:{min:1,max:32,step:1,mode:'box'}}},{name:'repeats',selector:{number:{min:1,max:3,step:1,mode:'box'}}}];
-      this._form.computeLabel=s=>({entity:'Staubsauger',name:'Name',show_map:'Karte anzeigen',map_entity:'Kartenkamera',live_camera_entity:'Live-Kamera (optional)',cleaning_mode_entity:'Reinigungsmodus',water_level_entity:'Wassermenge (Feuchtigkeit)',battery_entity:'Batteriesensor',area_entity:'Flächensensor',time_entity:'Zeitsensor',error_entity:'Fehlersensor',main_brush_entity:'Hauptbürste (Restlaufzeit)',side_brush_entity:'Seitenbürste (Restlaufzeit)',filter_entity:'Filter (Restlaufzeit)',sensor_cleaning_entity:'Sensoren (Restlaufzeit)',carpet_mode_entity:'Teppichmodus',default_water_level:'Standard-Wassermenge (14)',wash_entity:'Moppwäsche (Start/Pause)',dry_entity:'Trocknung (Start/Stopp)',empty_entity:'Staub entleeren',repeats:'Raumreinigung: Wiederholungen'})[s.name] || s.name;
+      this._form.schema=[{name:'entity',required:true,selector:{entity:{domain:'vacuum'}}},{name:'name',selector:{text:{}}},{name:'show_map',selector:{boolean:{}}},{name:'live_camera_path',selector:{text:{}}},...Object.entries({map_entity:'camera',live_camera_entity:'camera',cleaning_mode_entity:'select',water_level_entity:'number',battery_entity:'sensor',area_entity:'sensor',time_entity:'sensor',error_entity:'sensor',main_brush_entity:'sensor',side_brush_entity:'sensor',filter_entity:'sensor',sensor_cleaning_entity:'sensor',carpet_mode_entity:'switch',wash_entity:'button',dry_entity:'button',empty_entity:'button'}).map(([name,domain])=>({name,selector:{entity:{domain}}})),{name:'default_water_level',selector:{number:{min:1,max:32,step:1,mode:'box'}}},{name:'repeats',selector:{number:{min:1,max:3,step:1,mode:'box'}}}];
+      this._form.computeLabel=s=>({entity:'Staubsauger',name:'Name',show_map:'Karte anzeigen',map_entity:'Kartenkamera',live_camera_entity:'Live-Kamera (optional)',live_camera_path:'Kamera-Panel (Dashboard-Pfad, optional)',cleaning_mode_entity:'Reinigungsmodus',water_level_entity:'Wassermenge (Feuchtigkeit)',battery_entity:'Batteriesensor',area_entity:'Flächensensor',time_entity:'Zeitsensor',error_entity:'Fehlersensor',main_brush_entity:'Hauptbürste (Restlaufzeit)',side_brush_entity:'Seitenbürste (Restlaufzeit)',filter_entity:'Filter (Restlaufzeit)',sensor_cleaning_entity:'Sensoren (Restlaufzeit)',carpet_mode_entity:'Teppichmodus',default_water_level:'Standard-Wassermenge (14)',wash_entity:'Moppwäsche (Start/Pause)',dry_entity:'Trocknung (Start/Stopp)',empty_entity:'Staub entleeren',repeats:'Raumreinigung: Wiederholungen'})[s.name] || s.name;
       this._form.addEventListener('value-changed',event=>{event.stopPropagation();this._config={...this._config,...event.detail.value};this.dispatchEvent(new CustomEvent('config-changed',{bubbles:true,composed:true,detail:{config:this._config}}));});
     }
     this._form.hass=this._hass;this._form.data=this._config;

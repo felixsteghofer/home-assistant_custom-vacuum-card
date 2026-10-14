@@ -1,0 +1,31 @@
+type: panel
+title: Winky Kamera
+path: winky-camera
+subview: true
+back_path: /dashboard-dahoam/gang-eg
+cards:
+  - type: picture-glance
+    title: Winky Kamera
+    camera_image: camera.winky_live
+    camera_view: live
+    aspect_ratio: '16:9'
+    fit_mode: contain
+    tap_action:
+      action: none
+    entities:
+      - entity: button.winky_camera_start
+        icon: mdi:video
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: button.press
+          target:
+            entity_id: button.winky_camera_start
+      - entity: button.winky_camera_stop
+        icon: mdi:video-off
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: button.press
+          target:
+            entity_id: button.winky_camera_stop
