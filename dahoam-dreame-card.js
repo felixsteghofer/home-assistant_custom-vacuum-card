@@ -1,4 +1,4 @@
-/** Dahoam Vacuum Card v1.8.0 — independent implementation, MIT. */
+/** Dahoam Vacuum Card v1.8.1 — independent implementation, MIT. */
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const available = entity => entity && !['unknown', 'unavailable'].includes(entity.state);
 const validNumber = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
@@ -48,6 +48,7 @@ class DahoamDreameCard extends HTMLElement {
       if(button.dataset.action){if(button.dataset.action.startsWith('panel-'))event.preventDefault();this._act(button.dataset.action,event.detail===0);}
       else if(button.dataset.room){const id=Number(button.dataset.room);this._selected.has(id)?this._selected.delete(id):this._selected.add(id);this._render();}
     });
+    this._cameraDialogClosed=event=>{if(event.detail?.dialog==='ha-more-info-dialog')this._stopCameraDialog();};
     this.shadowRoot.addEventListener('keydown',event=>{if(event.key==='Escape' && this._isFlyoutOpen() && !event.defaultPrevented){event.preventDefault();this._closeFlyout();}});
     this.shadowRoot.addEventListener('change', event => {if(event.target.dataset.setting)this._setting(event.target.dataset.setting,event.target.value);});
     this.shadowRoot.addEventListener('input', event => {if(event.target.dataset.setting==='water'){this._draftWater=Number(event.target.value);this.shadowRoot.querySelector('[data-water-output]').textContent=event.target.value;}});
@@ -62,7 +63,6 @@ class DahoamDreameCard extends HTMLElement {
     for (const [key, domain] of Object.entries({map_entity:'camera',live_camera_entity:'camera',cleaning_mode_entity:'select',water_level_entity:'number',battery_entity:'sensor',area_entity:'sensor',time_entity:'sensor',error_entity:'sensor',main_brush_entity:'sensor',side_brush_entity:'sensor',filter_entity:'sensor',sensor_cleaning_entity:'sensor',carpet_mode_entity:'switch',wash_entity:'button',dry_entity:'button',empty_entity:'button'})) {
       if (config[key] && !new RegExp(`^${domain}\\.[a-z0-9_]+$`).test(config[key])) throw new Error(`${key} must be a ${domain} entity.`);
     }
-    if(config.live_camera_path && (!/^\/(?!\/)/.test(config.live_camera_path) || /[?#]/.test(config.live_camera_path)))throw new Error('live_camera_path must be a local dashboard path.');
     if (config.repeats !== undefined && ![1,2,3].includes(config.repeats)) throw new Error('repeats must be 1, 2 or 3.');
     if(config.default_water_level !== undefined && (!Number.isInteger(config.default_water_level) || config.default_water_level<1 || config.default_water_level>32))throw new Error('default_water_level must be an integer from 1 to 32.');
     this._draftMode=undefined;this._draftWater=config.default_water_level ?? 14;
@@ -74,6 +74,7 @@ class DahoamDreameCard extends HTMLElement {
   getCardSize() { return this._config?.show_map === false ? 8 : 13; }
   getGridOptions() { return {columns:12, min_columns:6}; }
   connectedCallback() {
+    window.addEventListener('dialog-closed',this._cameraDialogClosed);
     this._reposition ||= ()=>{if(this._isFlyoutOpen() && !this._positionFrame)this._positionFrame=requestAnimationFrame(()=>{this._positionFrame=undefined;this._positionFlyout();});};
     window.addEventListener('resize',this._reposition);window.addEventListener('scroll',this._reposition,true);window.visualViewport?.addEventListener('resize',this._reposition);window.visualViewport?.addEventListener('scroll',this._reposition);
     clearInterval(this._timer);
@@ -83,7 +84,7 @@ class DahoamDreameCard extends HTMLElement {
     }, 5000);
     this._render();
   }
-  disconnectedCallback() {clearInterval(this._timer);cancelAnimationFrame(this._positionFrame);this._positionFrame=undefined;this._closeFlyout(false);window.removeEventListener('resize',this._reposition);window.removeEventListener('scroll',this._reposition,true);window.visualViewport?.removeEventListener('resize',this._reposition);window.visualViewport?.removeEventListener('scroll',this._reposition);}
+  disconnectedCallback() {window.removeEventListener('dialog-closed',this._cameraDialogClosed);this._stopCameraDialog();clearInterval(this._timer);cancelAnimationFrame(this._positionFrame);this._positionFrame=undefined;this._closeFlyout(false);window.removeEventListener('resize',this._reposition);window.removeEventListener('scroll',this._reposition,true);window.visualViewport?.removeEventListener('resize',this._reposition);window.visualViewport?.removeEventListener('scroll',this._reposition);}
   _entity(key) { return this._hass?.states[this._config?.[key]]; }
   _hasService(domain, service) { return !!this._hass?.services?.[domain]?.[service]; }
   _supports(action) {
@@ -239,15 +240,18 @@ class DahoamDreameCard extends HTMLElement {
       if(camera.state!=='streaming') {
         if(!(Number(camera.attributes.supported_features)&1) || !this._hasService('camera','turn_on'))throw new Error('Kamera kann nicht gestartet werden.');
         await this._hass.callService('camera','turn_on',{entity_id:this._config.live_camera_entity});
+        this._cameraDialogEntity=this._config.live_camera_entity;
       }
-      if(this._config.live_camera_path){
-        history.pushState(null,'',this._config.live_camera_path);
-        window.dispatchEvent(new Event('location-changed'));
-      } else {
-        this.dispatchEvent(new CustomEvent('hass-more-info',{bubbles:true,composed:true,detail:{entityId:this._config.live_camera_entity}}));
-      }
+      this.dispatchEvent(new CustomEvent('hass-more-info',{bubbles:true,composed:true,detail:{entityId:this._config.live_camera_entity}}));
     } catch(error){this._error=error?.message || 'Kamera konnte nicht gestartet werden';}
     finally {this._cameraBusy=false;this._render();}
+  }
+  _stopCameraDialog() {
+    const entity_id=this._cameraDialogEntity;
+    this._cameraDialogEntity=undefined;
+    if(!entity_id)return;
+    // The native dialog emits this lifecycle event for close, Escape and back.
+    this._hass.callService('camera','turn_off',{entity_id}).catch(error=>{this._error=error?.message || 'Kamera konnte nicht gestoppt werden';this._render();});
   }
   _refreshMap() {
     this._refreshSerial++; this._lastRefresh = Date.now();
@@ -393,8 +397,8 @@ class DahoamDreameEditor extends HTMLElement {
     if(!this._hass || !this._config)return;
     if(!this._form){
       this.shadowRoot.innerHTML='<ha-form></ha-form>';this._form=this.shadowRoot.querySelector('ha-form');
-      this._form.schema=[{name:'entity',required:true,selector:{entity:{domain:'vacuum'}}},{name:'name',selector:{text:{}}},{name:'show_map',selector:{boolean:{}}},{name:'live_camera_path',selector:{text:{}}},...Object.entries({map_entity:'camera',live_camera_entity:'camera',cleaning_mode_entity:'select',water_level_entity:'number',battery_entity:'sensor',area_entity:'sensor',time_entity:'sensor',error_entity:'sensor',main_brush_entity:'sensor',side_brush_entity:'sensor',filter_entity:'sensor',sensor_cleaning_entity:'sensor',carpet_mode_entity:'switch',wash_entity:'button',dry_entity:'button',empty_entity:'button'}).map(([name,domain])=>({name,selector:{entity:{domain}}})),{name:'default_water_level',selector:{number:{min:1,max:32,step:1,mode:'box'}}},{name:'repeats',selector:{number:{min:1,max:3,step:1,mode:'box'}}}];
-      this._form.computeLabel=s=>({entity:'Staubsauger',name:'Name',show_map:'Karte anzeigen',map_entity:'Kartenkamera',live_camera_entity:'Live-Kamera (optional)',live_camera_path:'Kamera-Panel (Dashboard-Pfad, optional)',cleaning_mode_entity:'Reinigungsmodus',water_level_entity:'Wassermenge (Feuchtigkeit)',battery_entity:'Batteriesensor',area_entity:'Flächensensor',time_entity:'Zeitsensor',error_entity:'Fehlersensor',main_brush_entity:'Hauptbürste (Restlaufzeit)',side_brush_entity:'Seitenbürste (Restlaufzeit)',filter_entity:'Filter (Restlaufzeit)',sensor_cleaning_entity:'Sensoren (Restlaufzeit)',carpet_mode_entity:'Teppichmodus',default_water_level:'Standard-Wassermenge (14)',wash_entity:'Moppwäsche (Start/Pause)',dry_entity:'Trocknung (Start/Stopp)',empty_entity:'Staub entleeren',repeats:'Raumreinigung: Wiederholungen'})[s.name] || s.name;
+      this._form.schema=[{name:'entity',required:true,selector:{entity:{domain:'vacuum'}}},{name:'name',selector:{text:{}}},{name:'show_map',selector:{boolean:{}}},...Object.entries({map_entity:'camera',live_camera_entity:'camera',cleaning_mode_entity:'select',water_level_entity:'number',battery_entity:'sensor',area_entity:'sensor',time_entity:'sensor',error_entity:'sensor',main_brush_entity:'sensor',side_brush_entity:'sensor',filter_entity:'sensor',sensor_cleaning_entity:'sensor',carpet_mode_entity:'switch',wash_entity:'button',dry_entity:'button',empty_entity:'button'}).map(([name,domain])=>({name,selector:{entity:{domain}}})),{name:'default_water_level',selector:{number:{min:1,max:32,step:1,mode:'box'}}},{name:'repeats',selector:{number:{min:1,max:3,step:1,mode:'box'}}}];
+      this._form.computeLabel=s=>({entity:'Staubsauger',name:'Name',show_map:'Karte anzeigen',map_entity:'Kartenkamera',live_camera_entity:'Live-Kamera (optional)',cleaning_mode_entity:'Reinigungsmodus',water_level_entity:'Wassermenge (Feuchtigkeit)',battery_entity:'Batteriesensor',area_entity:'Flächensensor',time_entity:'Zeitsensor',error_entity:'Fehlersensor',main_brush_entity:'Hauptbürste (Restlaufzeit)',side_brush_entity:'Seitenbürste (Restlaufzeit)',filter_entity:'Filter (Restlaufzeit)',sensor_cleaning_entity:'Sensoren (Restlaufzeit)',carpet_mode_entity:'Teppichmodus',default_water_level:'Standard-Wassermenge (14)',wash_entity:'Moppwäsche (Start/Pause)',dry_entity:'Trocknung (Start/Stopp)',empty_entity:'Staub entleeren',repeats:'Raumreinigung: Wiederholungen'})[s.name] || s.name;
       this._form.addEventListener('value-changed',event=>{event.stopPropagation();this._config={...this._config,...event.detail.value};this.dispatchEvent(new CustomEvent('config-changed',{bubbles:true,composed:true,detail:{config:this._config}}));});
     }
     this._form.hass=this._hass;this._form.data=this._config;

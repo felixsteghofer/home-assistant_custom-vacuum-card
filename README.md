@@ -5,7 +5,7 @@ A compact Home Assistant custom card with a camera map, room selection, cleaning
 ## Install
 
 1. Copy `dahoam-dreame-card.js` to `/config/www/dahoam-dreame-card.js`.
-2. Add `/local/dahoam-dreame-card.js?v=1.8.0` as a **JavaScript module** in **Settings → Dashboards → Resources**.
+2. Add `/local/dahoam-dreame-card.js?v=1.8.1` as a **JavaScript module** in **Settings → Dashboards → Resources**.
 3. Hard-refresh Home Assistant, then **Add card → Dahoam Vacuum**. Choose the vacuum and its related entities. See `examples/winky.yaml` and `examples/dobby.yaml`.
 
 No build step or runtime dependencies. Existing `custom:dahoam-dreame-card` configurations continue to work. Do not edit Home Assistant's `.storage` files.
@@ -25,19 +25,14 @@ No build step or runtime dependencies. Existing `custom:dahoam-dreame-card` conf
 
 Configure `live_camera_entity` to add **Kamera** as the last badge. Clicking it
 starts the feed through `camera.turn_on`, then opens Home Assistant's native
-camera details. No camera flyout or custom media renderer is used.
+camera **more info** dialog, the same dialog used by other camera entities.
+No camera flyout, custom media renderer, or separate dashboard page is used.
 
-Set `live_camera_path` to open a dedicated native dashboard panel instead, such
-as `/dashboard-dahoam/winky-camera`. Winky's installed panel uses a native Picture
-Glance card with `camera_view: live` and native Start/Stop icon buttons. The panel can
-be edited in HA's visual editor; see `examples/winky-camera-view.yaml`.
-
-Use Stop in that panel to end the feed immediately. The backend's session limit
-(default 120 seconds) and real viewer-disconnect handling remain active. Some
-webviews retain media connections after navigation, so navigating back alone is
-not a guaranteed immediate stop. Close MOVAhome's live view before starting.
-PINs stay in integration options and are never included in card configuration.
-Dobby has no camera badge unless a live camera entity is explicitly configured.
+Closing that native dialog stops a session started by this card. An already
+running session is opened without an additional start and is left to its owner.
+The backend's session limit (default 120 seconds) remains active. Close MOVAhome's
+live view before starting. PINs stay in integration options and are never included
+in card configuration. Dobby has no camera badge unless explicitly configured.
 
 ## Map and flyout interactions
 
@@ -59,7 +54,6 @@ Only `entity` is required. The visual editor supports the optional fields below.
 | `show_map` | Show configured map camera; defaults to true |
 | `map_entity` | Map camera entity |
 | `live_camera_entity` | Optional live camera with on/off support, e.g. `camera.winky_live` |
-| `live_camera_path` | Optional local path to a native camera panel; otherwise opens native camera details |
 | `cleaning_mode_entity` | Cleaning-mode select entity |
 | `water_level_entity` | Wetness/water number entity |
 | `default_water_level` | Initial water value; defaults to 14 |
