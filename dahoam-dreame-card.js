@@ -1,4 +1,4 @@
-/** Dahoam Vacuum Card v1.8.1 — independent implementation, MIT. */
+/** Dahoam Vacuum Card v1.8.2 — independent implementation, MIT. */
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const available = entity => entity && !['unknown', 'unavailable'].includes(entity.state);
 const validNumber = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
@@ -32,6 +32,7 @@ header{display:flex;align-items:center;gap:12px;padding:16px}.robot{display:grid
 .muted{font-size:11px;color:var(--secondary-text-color,#727272)}.map{margin:0 12px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--secondary-background-color,#f5f5f5)}.map-tools,.map-meta{display:flex;align-items:center;gap:4px;padding:4px 8px}.map-tools{justify-content:flex-end}.map-label{margin-right:auto;font-size:12px;display:flex;align-items:center;gap:5px}.map-label ha-icon{--mdc-icon-size:16px;color:var(--secondary-text-color,#727272)}.map-tools button{min-height:32px;min-width:32px;padding:4px;border:0;background:transparent}.map-tools .zoom-reset{min-width:44px;font-size:11px}.map-viewport{position:relative;height:300px;overflow:auto;touch-action:pan-x pan-y;overscroll-behavior:auto;user-select:none;scrollbar-width:thin}.map-viewport:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}.map-viewport[data-dragging]{cursor:grabbing}.map-viewport[data-zoomed]{cursor:grab}.map img{display:block;max-width:none;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none}.map img[hidden]{display:none}.placeholder{display:grid;place-items:center;min-height:220px;padding:20px;font-size:12px;color:var(--secondary-text-color,#727272);text-align:center}.map-meta{justify-content:space-between;flex-wrap:wrap;border-top:1px solid var(--line);font-size:10px;color:var(--secondary-text-color,#727272)}.map-meta button{min-height:28px;font-size:10px;padding:2px 4px;border:0;background:transparent}.map-meta ha-icon{--mdc-icon-size:14px}.map-help{font-size:10px;color:var(--secondary-text-color,#727272);padding:3px 8px 6px;line-height:14px}.map-help:empty{display:none}
 .stats{display:flex;gap:8px;margin:12px 16px}.stat{flex:1;text-align:center}.value{font-size:18px;line-height:24px;font-weight:500;margin-bottom:2px}.controls{display:flex;gap:8px;padding:0 16px 12px}.controls button{min-height:40px}.progress{height:3px;background:var(--line);margin:0 16px;border-radius:3px;overflow:hidden}.progress span{display:block;height:100%;background:var(--accent)}
 button,select{font:inherit;color:inherit;border:1px solid var(--line);background:transparent;border-radius:8px;min-height:40px;padding:8px 12px;cursor:pointer}button{display:inline-flex;align-items:center;justify-content:center;gap:6px}button:hover{background:var(--soft)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}button:disabled,select:disabled,input:disabled{opacity:.4;cursor:default}.primary{background:var(--accent);border-color:transparent;color:var(--text-primary-color,#fff);font-weight:500;flex:1}.primary:hover{background:var(--accent);filter:brightness(.95)}ha-icon{--mdc-icon-size:20px}
+.camera-spinner{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:camera-spin 1s linear infinite}@keyframes camera-spin{to{transform:rotate(360deg)}}
 .badges{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px 6px}.badge{min-height:32px;padding:4px 9px;border-radius:16px;background:var(--secondary-background-color,#f5f5f5);border-color:transparent;font-size:12px;gap:5px}.badge[aria-expanded=true]{background:var(--soft);color:var(--accent)}.badge ha-icon{--mdc-icon-size:16px}.chevron{font-size:12px;opacity:.65}
 .flyout{position:fixed;inset:auto;margin:0;padding:0;width:min(340px,calc(100vw - 16px));max-height:min(70dvh,480px);overflow:auto;color:var(--primary-text-color,#212121);background:var(--card-background-color,#fff);border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 16px #0003;font-family:var(--ha-font-family-body,var(--primary-font-family,inherit));z-index:10}.flyout::backdrop{background:transparent;pointer-events:none}.flyout-title{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;font-size:14px}.flyout-title strong{font-weight:500}.flyout-title button{min-height:32px;min-width:32px;padding:4px;border:0}.flyout section{padding:12px;border-top:1px solid var(--line)}.section-title{display:flex;justify-content:space-between;font-size:12px;color:var(--secondary-text-color,#727272);margin-bottom:8px}.rooms{display:flex;flex-wrap:wrap;gap:6px}.room{min-height:34px;padding:5px 8px;font-size:12px;gap:4px;border-radius:8px}.room ha-icon{--mdc-icon-size:16px}.room[aria-pressed=true]{color:var(--accent);background:var(--soft);border-color:var(--accent)}.room-selection{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.room-selection .section-title{margin:0}.room-selection button{min-height:34px;padding:5px 8px;font-size:12px}.room-tools{display:flex;gap:6px;margin-top:12px}.room-tools button{min-height:36px;font-size:12px}.room-tools .primary{flex:1}.settings{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:grid;gap:6px;font-size:12px;color:var(--secondary-text-color,#727272)}select{width:100%;min-width:0;min-height:40px;font-size:13px;color:var(--primary-text-color,#212121);background:var(--card-background-color,#fff)}.water,.carpet-setting,.water-hint{grid-column:1/-1}.water-top,.carpet-setting{display:flex;align-items:center;justify-content:space-between;gap:8px}.water input{width:100%;accent-color:var(--accent);margin:5px 0}.water output{color:var(--primary-text-color,#212121);font-weight:500}.water-hint{font-size:11px;line-height:16px;color:var(--secondary-text-color,#727272)}.carpet-setting{font-size:13px}.carpet-setting button{min-height:34px;padding:4px 12px}.carpet-setting button[aria-checked=true]{color:var(--accent);background:var(--soft)}.dock{display:flex;gap:8px}.dock button{flex:1;flex-direction:column;font-size:12px;padding:10px 4px;min-height:60px}.dock ha-icon{color:var(--accent)}.supplies{display:grid;grid-template-columns:1fr 1fr;gap:12px}.supply{font-size:12px}.supply progress{display:block;width:100%;height:5px;accent-color:var(--accent);margin-top:6px}
 
@@ -39,6 +40,99 @@ button,select{font:inherit;color:inherit;border:1px solid var(--line);background
 @media(max-width:380px){.map-viewport{height:280px}.controls button{font-size:12px;padding:8px 10px}.badge{font-size:11px}.settings{gap:8px}}
 @media(prefers-reduced-motion:no-preference){button{transition:background .12s}}
 `;
+
+// HA owns the dialog history/focus; its native Picture Entity owns video rendering.
+class DahoamVacuumCameraDialog extends HTMLElement {
+  constructor() {
+    super();this.attachShadow({mode:'open'});
+    this.shadowRoot.innerHTML=`<style>
+      :host{color:var(--primary-text-color,#212121);font-family:var(--ha-font-family-body,var(--primary-font-family,inherit))}
+      *{box-sizing:border-box}dialog{width:min(800px,calc(100vw - 24px));max-height:calc(100dvh - 32px);padding:0;border:0;border-radius:var(--ha-card-border-radius,12px);background:var(--card-background-color,#fff);color:inherit;box-shadow:0 12px 48px #0006;overflow:auto}dialog::backdrop{background:#0008}
+      header{display:flex;align-items:center;gap:12px;padding:12px 16px}h2{font-size:20px;font-weight:500;flex:1;margin:0}button{font:inherit;color:var(--primary-color,#03a9f4);background:transparent;border:0;border-radius:8px;min-width:44px;min-height:44px;cursor:pointer}button:focus-visible{outline:2px solid var(--primary-color,#03a9f4)}button:disabled{opacity:.4;cursor:default}[hidden]{display:none!important}
+      .close{font-size:28px;color:inherit}.video{min-height:160px;background:var(--secondary-background-color,#f5f5f5)}.video:empty{aspect-ratio:16/9;min-height:0}.video>*{display:block;--ha-card-border-width:0;--ha-card-border-radius:0;--ha-card-box-shadow:none}
+      .status{display:flex;align-items:center;gap:10px;min-height:52px;padding:12px 16px;font-size:14px}.spinner{width:18px;height:18px;flex:none;border:2px solid var(--divider-color,#ddd);border-top-color:var(--primary-color,#03a9f4);border-radius:50%;animation:spin 1s linear infinite}.error{color:var(--error-color,#db4437)}.hint{margin:0;padding:0 16px 16px;color:var(--secondary-text-color,#727272);font-size:12px;line-height:18px}@keyframes spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.spinner{animation-duration:2.5s}}
+    </style><dialog aria-labelledby="camera-title"><header><h2 id="camera-title"></h2><button class="close" aria-label="Schließen" autofocus>×</button></header><div class="video"></div><div class="status" role="status" aria-live="polite"><span class="spinner" aria-hidden="true"></span><span class="message"></span><button class="retry" hidden>Erneut versuchen</button></div><p class="hint"></p></dialog>`;
+    this._dialog=this.shadowRoot.querySelector('dialog');
+    this._dialog.addEventListener('cancel',event=>{event.preventDefault();this.closeDialog();});
+    this._dialog.addEventListener('click',event=>{if(event.target===this._dialog){const r=this._dialog.getBoundingClientRect();if(event.clientX<r.left || event.clientX>r.right || event.clientY<r.top || event.clientY>r.bottom)this.closeDialog();}});
+    this.shadowRoot.querySelector('.close').onclick=()=>this.closeDialog();
+    this.shadowRoot.querySelector('.retry').onclick=()=>this._start();
+  }
+  set hass(hass){this._hass=hass;if(this._nativeCard)this._nativeCard.hass=hass;this._updateStatus();}
+  showDialog(params){
+    // HA calls showDialog before appending a newly created dialog.
+    this._params=params;this._open=true;params.register(this);
+    this.shadowRoot.querySelector('h2').textContent=this._hass?.states[params.entityId]?.attributes.friendly_name || 'Live-Kamera';
+    if(this.isConnected)this._show();
+  }
+  connectedCallback(){if(this._open)this._show();}
+  disconnectedCallback(){this.closeDialog();}
+  _show(){if(!this._dialog.open)this._dialog.showModal();this._start();}
+  _status(message,busy=false,error=false){
+    this.shadowRoot.querySelector('.message').textContent=message;
+    this.shadowRoot.querySelector('.spinner').hidden=!busy;
+    this.shadowRoot.querySelector('.status').classList.toggle('error',error);
+    this.shadowRoot.querySelector('.retry').hidden=!error;
+    this.shadowRoot.querySelector('.retry').disabled=!!this._op?.busy;
+  }
+  _updateStatus(){
+    const op=this._op;if(!op || op.closed || op.error)return;
+    if(op.busy){this._status(op.started?'Verbindung wird aufgebaut …':'Kamera wird gestartet …',true);return;}
+    const camera=this._hass?.states[op.entityId];
+    if(camera?.state==='streaming'){op.live=true;this._status('Live');}
+    else if(op.live || !available(camera)){this._clearVideo();this._status('Kamera ist aus. Erneut verbinden?',false,true);}
+    else this._status('Verbindung wird aufgebaut …',true);
+  }
+  _clearVideo(){this.shadowRoot.querySelector('.video').replaceChildren();this._nativeCard=undefined;}
+  _stop(op){
+    if(!op.owned)return Promise.resolve();
+    // Await startup even after dismissal, then stop exactly once. Never reopen late.
+    return op.stop ||= (async()=>{try{await op.start;}catch{}await op.hass.callService('camera','turn_off',{entity_id:op.entityId});})().catch(error=>op.params.onError(error?.message || 'Kamera konnte nicht gestoppt werden'));
+  }
+  async _start(){
+    if(!this._open || this._op?.busy)return;
+    const previous=this._op,params=this._params,hass=this._hass;
+    const op=this._op={params,hass,entityId:params.entityId,busy:true,closed:false,owned:false};
+    op.cancelled=new Promise(resolve=>{op.cancel=resolve;});
+    params.onBusy(true);this._clearVideo();this._status('Kamera wird gestartet …',true);
+    try{
+      if(previous)await this._stop(previous);
+      if(op.closed)return;
+      const camera=hass.states[op.entityId];
+      if(!available(camera))throw new Error('Kamera ist nicht verfügbar.');
+      op.owned=camera.state!=='streaming';
+      this.shadowRoot.querySelector('.hint').textContent=op.owned?'Beim Schließen wird die Kamera wieder ausgeschaltet.':'Die bereits laufende Kamera bleibt beim Schließen eingeschaltet.';
+      if(op.owned){
+        if(!(Number(camera.attributes.supported_features)&1) || !hass.services.camera?.turn_on){op.owned=false;throw new Error('Kamera kann nicht gestartet werden.');}
+        op.start=hass.callService('camera','turn_on',{entity_id:op.entityId});
+        await op.start;
+      }
+      op.started=true;
+      if(op.closed)return;
+      this._status('Verbindung wird aufgebaut …',true);
+      const helpers=await Promise.race([window.loadCardHelpers(),op.cancelled]);
+      if(op.closed)return;
+      const card=helpers.createCardElement({type:'picture-entity',entity:op.entityId,camera_view:'live',show_name:false,show_state:false,aspect_ratio:'16:9',fit_mode:'contain',tap_action:{action:'none'},hold_action:{action:'none'}});
+      card.hass=this._hass;this._nativeCard=card;this.shadowRoot.querySelector('.video').replaceChildren(card);
+    }catch(error){
+      op.error=true;
+      if(!op.closed)this._status(error?.message || 'Kamera konnte nicht gestartet werden',false,true);
+    }finally{
+      if(op.closed || op.error)await this._stop(op);
+      op.busy=false;params.onBusy(false);
+      if(this._op===op && !op.closed){if(op.error)this.shadowRoot.querySelector('.retry').disabled=false;else this._updateStatus();}
+    }
+  }
+  closeDialog(){
+    if(!this._open)return true;
+    this._open=false;this._clearVideo();this._dialog.close();
+    const op=this._op;if(op){op.closed=true;op.cancel();this._stop(op);if(!op.busy){op.busy=true;op.params.onBusy(true);this._stop(op).finally(()=>{op.busy=false;op.params.onBusy(false);});}}
+    this._params.onClose(this);
+    this.dispatchEvent(new CustomEvent('dialog-closed',{bubbles:true,composed:true,detail:{dialog:'dahoam-vacuum-camera-dialog'}}));
+    return true;
+  }
+}
+if(!customElements.get('dahoam-vacuum-camera-dialog'))customElements.define('dahoam-vacuum-camera-dialog',DahoamVacuumCameraDialog);
 
 class DahoamDreameCard extends HTMLElement {
   constructor() {
@@ -48,7 +142,6 @@ class DahoamDreameCard extends HTMLElement {
       if(button.dataset.action){if(button.dataset.action.startsWith('panel-'))event.preventDefault();this._act(button.dataset.action,event.detail===0);}
       else if(button.dataset.room){const id=Number(button.dataset.room);this._selected.has(id)?this._selected.delete(id):this._selected.add(id);this._render();}
     });
-    this._cameraDialogClosed=event=>{if(event.detail?.dialog==='ha-more-info-dialog')this._stopCameraDialog();};
     this.shadowRoot.addEventListener('keydown',event=>{if(event.key==='Escape' && this._isFlyoutOpen() && !event.defaultPrevented){event.preventDefault();this._closeFlyout();}});
     this.shadowRoot.addEventListener('change', event => {if(event.target.dataset.setting)this._setting(event.target.dataset.setting,event.target.value);});
     this.shadowRoot.addEventListener('input', event => {if(event.target.dataset.setting==='water'){this._draftWater=Number(event.target.value);this.shadowRoot.querySelector('[data-water-output]').textContent=event.target.value;}});
@@ -74,7 +167,6 @@ class DahoamDreameCard extends HTMLElement {
   getCardSize() { return this._config?.show_map === false ? 8 : 13; }
   getGridOptions() { return {columns:12, min_columns:6}; }
   connectedCallback() {
-    window.addEventListener('dialog-closed',this._cameraDialogClosed);
     this._reposition ||= ()=>{if(this._isFlyoutOpen() && !this._positionFrame)this._positionFrame=requestAnimationFrame(()=>{this._positionFrame=undefined;this._positionFlyout();});};
     window.addEventListener('resize',this._reposition);window.addEventListener('scroll',this._reposition,true);window.visualViewport?.addEventListener('resize',this._reposition);window.visualViewport?.addEventListener('scroll',this._reposition);
     clearInterval(this._timer);
@@ -84,7 +176,7 @@ class DahoamDreameCard extends HTMLElement {
     }, 5000);
     this._render();
   }
-  disconnectedCallback() {window.removeEventListener('dialog-closed',this._cameraDialogClosed);this._stopCameraDialog();clearInterval(this._timer);cancelAnimationFrame(this._positionFrame);this._positionFrame=undefined;this._closeFlyout(false);window.removeEventListener('resize',this._reposition);window.removeEventListener('scroll',this._reposition,true);window.visualViewport?.removeEventListener('resize',this._reposition);window.visualViewport?.removeEventListener('scroll',this._reposition);}
+  disconnectedCallback() {this._cameraDialog?.closeDialog();clearInterval(this._timer);cancelAnimationFrame(this._positionFrame);this._positionFrame=undefined;this._closeFlyout(false);window.removeEventListener('resize',this._reposition);window.removeEventListener('scroll',this._reposition,true);window.visualViewport?.removeEventListener('resize',this._reposition);window.visualViewport?.removeEventListener('scroll',this._reposition);}
   _entity(key) { return this._hass?.states[this._config?.[key]]; }
   _hasService(domain, service) { return !!this._hass?.services?.[domain]?.[service]; }
   _supports(action) {
@@ -231,27 +323,19 @@ class DahoamDreameCard extends HTMLElement {
       return url.href;
     } catch { return ''; }
   }
-  async _openCamera() {
+  _openCamera() {
     const camera=this._entity('live_camera_entity');
-    if(this._cameraBusy || !available(camera))return;
-    this._closeFlyout(false);
-    this._cameraBusy=true;this._error='';this._render();
-    try {
-      if(camera.state!=='streaming') {
-        if(!(Number(camera.attributes.supported_features)&1) || !this._hasService('camera','turn_on'))throw new Error('Kamera kann nicht gestartet werden.');
-        await this._hass.callService('camera','turn_on',{entity_id:this._config.live_camera_entity});
-        this._cameraDialogEntity=this._config.live_camera_entity;
-      }
-      this.dispatchEvent(new CustomEvent('hass-more-info',{bubbles:true,composed:true,detail:{entityId:this._config.live_camera_entity}}));
-    } catch(error){this._error=error?.message || 'Kamera konnte nicht gestartet werden';}
-    finally {this._cameraBusy=false;this._render();}
-  }
-  _stopCameraDialog() {
-    const entity_id=this._cameraDialogEntity;
-    this._cameraDialogEntity=undefined;
-    if(!entity_id)return;
-    // The native dialog emits this lifecycle event for close, Escape and back.
-    this._hass.callService('camera','turn_off',{entity_id}).catch(error=>{this._error=error?.message || 'Kamera konnte nicht gestoppt werden';this._render();});
+    if(this._cameraBusy || this._cameraDialog || !available(camera))return;
+    this._closeFlyout(false);this._error='';this._cameraBusy=true;this._render();
+    this.dispatchEvent(new CustomEvent('show-dialog',{bubbles:true,composed:true,detail:{
+      dialogTag:'dahoam-vacuum-camera-dialog',dialogImport:()=>Promise.resolve(),
+      dialogAnchor:this.shadowRoot.querySelector('[data-action="camera-open"]'),addHistory:true,
+      dialogParams:{entityId:this._config.live_camera_entity,
+        register:dialog=>{this._cameraDialog=dialog;},
+        onBusy:busy=>{this._cameraBusy=busy;this._render();},
+        onError:message=>{this._error=message;this._render();},
+        onClose:dialog=>{if(this._cameraDialog===dialog)this._cameraDialog=undefined;}}
+    }}));
   }
   _refreshMap() {
     this._refreshSerial++; this._lastRefresh = Date.now();
@@ -318,7 +402,7 @@ class DahoamDreameCard extends HTMLElement {
         ${settingsPanel ? this._badge('settings','tune-variant',`${({sweeping:'Saugen',mopping:'Wischen',sweeping_and_mopping:'Saugen & Wischen',mopping_after_sweeping:'Saugen → Wischen'})[selectedMode] || 'Saugkraft'}${mopping && water ? ` · ${waterLevel}` : ''}`) : ''}
         ${dockPanel ? this._badge('dock','home-import-outline','Station') : ''}
         ${maintenancePanel ? this._badge('maintenance','tools','Wartung') : ''}${toolsPanel ? this._badge('tools','dots-horizontal','Extras') : ''}
-        ${camera ? `<button class="badge" data-action="camera-open" aria-label="Live-Kamera öffnen" ${this._cameraBusy || !available(camera)?'disabled':''}><ha-icon icon="mdi:${cameraActive?'video':'video-outline'}"></ha-icon>${this._cameraBusy?'Kamera …':cameraActive?'Kamera · Live':'Kamera'}</button>` : ''}
+        ${camera ? `<button class="badge" data-action="camera-open" aria-label="Live-Kamera öffnen" aria-haspopup="dialog" aria-busy="${!!this._cameraBusy}" ${this._cameraBusy || !available(camera)?'disabled':''}>${this._cameraBusy?'<span class="camera-spinner" aria-hidden="true"></span>':`<ha-icon icon="mdi:${cameraActive?'video':'video-outline'}"></ha-icon>`}${this._cameraBusy?'Kamera startet …':cameraActive?'Kamera · Live':'Kamera'}</button>` : ''}
       </div>
       <div id="dc-flyout" data-key="flyout" class="flyout" role="dialog" aria-modal="false" style="${esc(flyoutStyle)}" ${popoverSupported?'popover="auto"':this._isFlyoutOpen()?'':'hidden'} aria-label="${esc(titles[this._panel] || 'Einstellungen')}">
         <div class="flyout-title"><strong>${esc(titles[this._panel] || '')}</strong><button data-action="close-panel" aria-label="Schließen"><ha-icon icon="mdi:close"></ha-icon></button></div>

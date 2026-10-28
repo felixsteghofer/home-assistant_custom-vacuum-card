@@ -5,7 +5,7 @@ A compact Home Assistant custom card with a camera map, room selection, cleaning
 ## Install
 
 1. Copy `dahoam-dreame-card.js` to `/config/www/dahoam-dreame-card.js`.
-2. Add `/local/dahoam-dreame-card.js?v=1.8.1` as a **JavaScript module** in **Settings → Dashboards → Resources**.
+2. Add `/local/dahoam-dreame-card.js?v=1.8.2` as a **JavaScript module** in **Settings → Dashboards → Resources**.
 3. Hard-refresh Home Assistant, then **Add card → Dahoam Vacuum**. Choose the vacuum and its related entities. See `examples/winky.yaml` and `examples/dobby.yaml`.
 
 No build step or runtime dependencies. Existing `custom:dahoam-dreame-card` configurations continue to work. Do not edit Home Assistant's `.storage` files.
@@ -24,12 +24,14 @@ No build step or runtime dependencies. Existing `custom:dahoam-dreame-card` conf
 ## Live camera
 
 Configure `live_camera_entity` to add **Kamera** as the last badge. Clicking it
-starts the feed through `camera.turn_on`, then opens Home Assistant's native
-camera **more info** dialog, the same dialog used by other camera entities.
-No camera flyout, custom media renderer, or separate dashboard page is used.
+opens the viewer immediately with a spinner and startup feedback. The live video
+uses Home Assistant's native **Picture Entity** card (`camera_view: live`), the
+same renderer used for the Avent babyphones. Home Assistant manages the dialog's
+Back navigation and focus. Errors appear in the viewer with a retry button.
 
-Closing that native dialog stops a session started by this card. An already
-running session is opened without an additional start and is left to its owner.
+Closing the viewer (close button, Escape, backdrop, Back or navigation) stops a
+session started by this card, including when startup finishes after dismissal.
+An already running session is opened without an additional start and left running.
 The backend's session limit (default 120 seconds) remains active. Close MOVAhome's
 live view before starting. PINs stay in integration options and are never included
 in card configuration. Dobby has no camera badge unless explicitly configured.
