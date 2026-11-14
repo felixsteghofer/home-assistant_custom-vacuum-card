@@ -147,6 +147,101 @@ await root.locator('[data-action="refresh-map"]').click();
 await root.locator('.map img').evaluate(img=>img.decode());
 assert.equal(await root.locator('.map img').isVisible(),true);
 assert.equal(await root.locator('.placeholder').count(),0);
+// Per-room mode saves to the mapped select and starts one segment job.
+await page.setViewportSize({width:360,height:760});
+await page.evaluate(()=>{
+ const vacuum=hass.states['vacuum.test'];
+ vacuum.attributes.customized_cleaning=false;
+ hass.states['switch.room_profile']={state:'off',attributes:{}};
+ for(const id of [1,2,6]) hass.states[`select.room_${id}`]={state:'unavailable',attributes:{options:['unavailable']}};
+ hass.services.switch={turn_on:{},turn_off:{}};
+ window.calls=[];
+ hass.callService=async(domain,service,data)=>{
+   calls.push([domain,service,data]);
+   if(domain==='switch'){
+     const enabled=service==='turn_on';
+     hass.states['switch.room_profile'].state=enabled?'on':'off';
+     vacuum.attributes.customized_cleaning=enabled;
+     for(const id of [1,2,6]) hass.states[`select.room_${id}`]=enabled
+       ? {state:'sweeping',attributes:{options:['sweeping','sweeping_and_mopping']}}
+       : {state:'unavailable',attributes:{options:['unavailable']}};
+   }
+   if(domain==='select') setTimeout(()=>{
+     hass.states[data.entity_id].state=data.option;
+     card.hass={...hass};
+   },200);
+   card.hass={...hass};
+ };
+ card.setConfig({entity:'vacuum.test',cleaning_mode_entity:'select.mode',
+   customized_cleaning_entity:'switch.room_profile',room_mode_entities:{1:'select.room_1',2:'select.room_2',6:'select.room_6'}});
+ card.hass={...hass};
+});
+await openPanel('rooms');
+await root.locator('[data-action="room-profile"]').click();
+await root.getByLabel('Reinigungsmodus für Bad').selectOption('sweeping_and_mopping');
+assert.equal(await root.locator('[data-action="rooms"]').isDisabled(),true);
+await page.waitForFunction(()=>!card._busy);
+assert.equal(await root.getByLabel('Reinigungsmodus für Bad').inputValue(),'sweeping_and_mopping');
+await root.locator('[data-action="select-all"]').click();
+await page.evaluate(()=>{hass.states['select.room_6'].state='unavailable';card.hass={...hass};});
+assert.equal(await root.locator('[data-action="rooms"]').isDisabled(),true);
+await page.evaluate(()=>{hass.states['select.room_6'].state='sweeping';card.hass={...hass};});
+await root.locator('[data-action="rooms"]').click();
+assert.deepEqual(await page.evaluate(()=>calls),[
+ ['switch','turn_on',{entity_id:'switch.room_profile'}],
+ ['select','select_option',{entity_id:'select.room_1',option:'sweeping_and_mopping'}],
+ ['dreame_vacuum','vacuum_clean_segment',{entity_id:'vacuum.test',segments:[1,2,6]}]
+]);
+// The main Start runs every visible room even when only some rooms are selected.
+await root.locator('[data-room="2"]').click();
+await closePanel();
+await page.evaluate(()=>{hass.states['select.room_6'].state='unavailable';card.hass={...hass};});
+assert.equal(await root.locator('[data-action="start"]').isDisabled(),true);
+await page.evaluate(()=>{hass.states['select.room_6'].state='sweeping';card.hass={...hass};});
+await root.locator('[data-action="start"]').click();
+assert.deepEqual(await page.evaluate(()=>calls.slice(3)),[
+ ['dreame_vacuum','vacuum_clean_segment',{entity_id:'vacuum.test',segments:[1,2,6]}]
+]);
+await page.evaluate(()=>{hass.states['vacuum.test'].state='paused';card.hass={...hass};});
+await root.getByRole('button',{name:'Fortsetzen'}).click();
+assert.deepEqual(await page.evaluate(()=>calls.at(-1)),['vacuum','start',{entity_id:'vacuum.test'}]);
+await page.evaluate(()=>{hass.states['vacuum.test'].state='docked';card.hass={...hass};});
+await openPanel('rooms');
+await root.locator('[data-action="room-profile"]').click();
+assert.equal(await root.getByLabel('Reinigungsmodus für Bad').count(),0);
+assert.equal(await root.locator('[data-action="start"]').isEnabled(),true);
+// Shared suction is saved only to selected rooms that vacuum, before the job starts.
+await page.evaluate(()=>{
+ const vacuum=hass.states['vacuum.test'];
+ vacuum.attributes.fan_speed='silent';
+ for(const id of [1,2,6]) hass.states[`select.suction_${id}`]={state:'standard',attributes:{options:['standard','quiet']}};
+ card.setConfig({...card._config,room_suction_entities:{1:'select.suction_1',2:'select.suction_2',6:'select.suction_6'}});
+});
+await openPanel('rooms');
+await root.locator('[data-action="room-profile"]').click();
+await page.evaluate(()=>{
+ hass.states['select.room_2']={state:'mopping',attributes:{options:['mopping']}};
+ calls.length=0;
+ card.hass={...hass};
+});
+await root.locator('[data-room="1"]').click();
+await root.locator('[data-room="2"]').click();
+await root.locator('[data-action="rooms"]').click();
+await page.waitForFunction(()=>!card._busy);
+assert.deepEqual(await page.evaluate(()=>calls),[
+ ['select','select_option',{entity_id:'select.suction_1',option:'quiet'}],
+ ['dreame_vacuum','vacuum_clean_segment',{entity_id:'vacuum.test',segments:[1,2]}]
+]);
+await closePanel();
+await page.evaluate(()=>{
+ hass.states['select.suction_6'].state='unavailable';
+ calls.length=0;
+ card.hass={...hass};
+});
+await root.locator('[data-action="start"]').click();
+await page.waitForFunction(()=>!card._busy);
+assert.deepEqual(await page.evaluate(()=>calls),[]);
+assert.match(await root.locator('ha-card').innerText(),/Saugkraft für Wohnzimmer ist nicht verfügbar/);
 // Visual editor preserves keys it does not own.
 assert.equal(await page.evaluate(()=>{const editor=customElements.get('dahoam-dreame-card').getConfigElement();editor.setConfig({type:'custom:dahoam-dreame-card',entity:'vacuum.test',grid_options:{columns:12}});editor.hass=hass;let config;editor.addEventListener('config-changed',e=>config=e.detail.config);editor.shadowRoot.querySelector('ha-form').dispatchEvent(new CustomEvent('value-changed',{detail:{value:{name:'New'}}}));return config.grid_options.columns}),12);
 assert.deepEqual(errors,[]);

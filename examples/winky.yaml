@@ -11,3 +11,22 @@ repeats: 1
 water_level_entity: number.winky_wetness_level
 default_water_level: 14
 live_camera_entity: camera.winky_live
+customized_cleaning_entity: switch.winky_customized_cleaning
+room_mode_entities:
+  1: select.winky_room_1_cleaning_mode
+  2: select.winky_room_2_cleaning_mode
+  3: select.winky_room_3_cleaning_mode
+  4: select.winky_room_4_cleaning_mode
+  5: select.winky_room_5_cleaning_mode
+  6: select.winky_room_6_cleaning_mode
+  7: select.winky_room_7_cleaning_mode
+  9: select.winky_room_9_cleaning_mode
+room_suction_entities:
+  1: select.winky_room_1_suction_level
+  2: select.winky_room_2_suction_level
+  3: select.winky_room_3_suction_level
+  4: select.winky_room_4_suction_level
+  5: select.winky_room_5_suction_level
+  6: select.winky_room_6_suction_level
+  7: select.winky_room_7_suction_level
+  9: select.winky_room_9_suction_level

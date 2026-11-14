@@ -5,7 +5,7 @@ A compact Home Assistant custom card with a camera map, room selection, cleaning
 ## Install
 
 1. Copy `dahoam-dreame-card.js` to `/config/www/dahoam-dreame-card.js`.
-2. Add `/local/dahoam-dreame-card.js?v=1.8.2` as a **JavaScript module** in **Settings → Dashboards → Resources**.
+2. Add `/local/dahoam-dreame-card.js?v=1.9.3` as a **JavaScript module** in **Settings → Dashboards → Resources**.
 3. Hard-refresh Home Assistant, then **Add card → Dahoam Vacuum**. Choose the vacuum and its related entities. See `examples/winky.yaml` and `examples/dobby.yaml`.
 
 No build step or runtime dependencies. Existing `custom:dahoam-dreame-card` configurations continue to work. Do not edit Home Assistant's `.storage` files.
@@ -16,9 +16,10 @@ No build step or runtime dependencies. Existing `custom:dahoam-dreame-card` conf
 - Map preview, pinch/wheel zoom and manual refresh. Camera images refresh every 10 seconds during cleaning and every 30 seconds otherwise while the page is visible.
 - **Rooms**, **Cleaning**, **Station** and **Maintenance** badges open non-modal flyouts anchored to the badge. The background remains usable, without dimming or blur. Outside click/tap, Escape, the same badge, or the close button dismisses them.
 - In the room flyout, **Alle auswählen** selects every room exposed by the vacuum on the current map; **Leeren** clears the selection. Selection alone never starts cleaning. Hidden rooms omitted by the integration are not added.
+- **Pro Raum** in the room flyout enables the vacuum’s saved room settings. Set the mode beside each room, select the rooms, then use **Auswahl reinigen** to start one job. Switch **Pro Raum** off to start with the global mode and water level.
 - Cleaning mode includes vacuum, mop, vacuum+mop, and mop after vacuum, depending on the configured integration's options.
 - Water level defaults to **14**. The range follows the configured number entity; tested with a Dreame device exposing 1–32.
-- Mode and water are applied when starting a new whole-home or room task. Resume keeps the current task's settings. If preparation fails, cleaning does not start.
+- Global mode and water are applied when starting a new whole-home or room task with **Pro Raum** off. Resume keeps the current task's settings. If preparation fails, cleaning does not start.
 - Suction changes apply immediately. Dock buttons retain their integration's start/pause or start/stop behavior.
 
 ## Live camera
@@ -57,6 +58,9 @@ Only `entity` is required. The visual editor supports the optional fields below.
 | `map_entity` | Map camera entity |
 | `live_camera_entity` | Optional live camera with on/off support, e.g. `camera.winky_live` |
 | `cleaning_mode_entity` | Cleaning-mode select entity |
+| `customized_cleaning_entity` | Dreame switch for individual room cleaning |
+| `room_suction_entities` | Optional mapping of room IDs to Dreame suction selects. With this mapping, **Saugkraft** applies to rooms that vacuum in either start action. Add it in the card’s YAML editor. |
+| `room_mode_entities` | Mapping of room IDs to Dreame cleaning-mode select entities. Add this mapping in the card’s YAML editor. See `examples/winky.yaml`. |
 | `water_level_entity` | Wetness/water number entity |
 | `default_water_level` | Initial water value; defaults to 14 |
 | `wash_entity`, `dry_entity`, `empty_entity` | Optional station button entities |
@@ -68,7 +72,11 @@ Only `entity` is required. The visual editor supports the optional fields below.
 
 The optional statistic and maintenance sensors override the corresponding vacuum attributes; when omitted, the card reads `battery`, `cleaned_area`, `cleaning_time`, `main_brush_left`, `side_brush_left`, `filter_left` and `sensor_dirty_left` from the vacuum. These attribute fallbacks use %, m² and minutes. Explicit sensors use their reported units, including cm²/seconds/minutes conversions. `repeats` applies to room tasks only; `default_water_level` initializes the staged water setting and is applied on starting a mopping task. The editor preserves Home Assistant layout/visibility keys.
 
-The original Dreame card is not required. This is an independent implementation that uses existing Home Assistant entities and services. The backend integration still controls device access and availability. The map is an image preview, without zone drawing or map editing. Source timestamps can remain old while docked. Individual room customization must be disabled in the device settings when using global mode/water controls.
+The original Dreame card is not required. This is an independent implementation that uses existing Home Assistant entities and services. The backend integration still controls device access and availability. The map is an image preview, without zone drawing or map editing. Source timestamps can remain old while docked.
+
+### Saved room modes
+
+With **Pro Raum** active, each dropdown saves directly to the robot’s current map. To vacuum and mop HWR and Speis on Winky’s Dahoam map, set rooms 3 and 5 to **Saugen & Wischen** and the other visible rooms to **Saugen**. **Start** runs all visible rooms with their saved settings. **Auswahl reinigen** runs the selected rooms. Dreame uses its saved water and repeat settings. With `room_suction_entities` configured, the card copies **Saugkraft** into the saved suction setting of each room that will vacuum. This happens before the job starts and the saved values persist on the map. Other configurations use their existing saved room suction. Each selected room needs an available mode before the card can start. CleanGenius can make room modes unavailable.
 
 ## Dreame and Valetudo
 

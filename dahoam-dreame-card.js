@@ -1,5 +1,6 @@
-/** Dahoam Vacuum Card v1.8.2 — independent implementation, MIT. */
+/** Dahoam Vacuum Card v1.9.3 — independent implementation, MIT. */
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cleaningModes = {sweeping:'Saugen',mopping:'Wischen',sweeping_and_mopping:'Saugen & Wischen',mopping_after_sweeping:'Wischen nach Saugen'};
 const available = entity => entity && !['unknown', 'unavailable'].includes(entity.state);
 const validNumber = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
 const measure = (value, unit = '') => validNumber(value) ? `${Number(value)}${unit}` : '—';
@@ -36,6 +37,13 @@ button,select{font:inherit;color:inherit;border:1px solid var(--line);background
 .badges{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px 6px}.badge{min-height:32px;padding:4px 9px;border-radius:16px;background:var(--secondary-background-color,#f5f5f5);border-color:transparent;font-size:12px;gap:5px}.badge[aria-expanded=true]{background:var(--soft);color:var(--accent)}.badge ha-icon{--mdc-icon-size:16px}.chevron{font-size:12px;opacity:.65}
 .flyout{position:fixed;inset:auto;margin:0;padding:0;width:min(340px,calc(100vw - 16px));max-height:min(70dvh,480px);overflow:auto;color:var(--primary-text-color,#212121);background:var(--card-background-color,#fff);border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 16px #0003;font-family:var(--ha-font-family-body,var(--primary-font-family,inherit));z-index:10}.flyout::backdrop{background:transparent;pointer-events:none}.flyout-title{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;font-size:14px}.flyout-title strong{font-weight:500}.flyout-title button{min-height:32px;min-width:32px;padding:4px;border:0}.flyout section{padding:12px;border-top:1px solid var(--line)}.section-title{display:flex;justify-content:space-between;font-size:12px;color:var(--secondary-text-color,#727272);margin-bottom:8px}.rooms{display:flex;flex-wrap:wrap;gap:6px}.room{min-height:34px;padding:5px 8px;font-size:12px;gap:4px;border-radius:8px}.room ha-icon{--mdc-icon-size:16px}.room[aria-pressed=true]{color:var(--accent);background:var(--soft);border-color:var(--accent)}.room-selection{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.room-selection .section-title{margin:0}.room-selection button{min-height:34px;padding:5px 8px;font-size:12px}.room-tools{display:flex;gap:6px;margin-top:12px}.room-tools button{min-height:36px;font-size:12px}.room-tools .primary{flex:1}.settings{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:grid;gap:6px;font-size:12px;color:var(--secondary-text-color,#727272)}select{width:100%;min-width:0;min-height:40px;font-size:13px;color:var(--primary-text-color,#212121);background:var(--card-background-color,#fff)}.water,.carpet-setting,.water-hint{grid-column:1/-1}.water-top,.carpet-setting{display:flex;align-items:center;justify-content:space-between;gap:8px}.water input{width:100%;accent-color:var(--accent);margin:5px 0}.water output{color:var(--primary-text-color,#212121);font-weight:500}.water-hint{font-size:11px;line-height:16px;color:var(--secondary-text-color,#727272)}.carpet-setting{font-size:13px}.carpet-setting button{min-height:34px;padding:4px 12px}.carpet-setting button[aria-checked=true]{color:var(--accent);background:var(--soft)}.dock{display:flex;gap:8px}.dock button{flex:1;flex-direction:column;font-size:12px;padding:10px 4px;min-height:60px}.dock ha-icon{color:var(--accent)}.supplies{display:grid;grid-template-columns:1fr 1fr;gap:12px}.supply{font-size:12px}.supply progress{display:block;width:100%;height:5px;accent-color:var(--accent);margin-top:6px}
 
+.room-profile{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.room-profile button{min-height:34px;padding:5px 8px;font-size:12px}
+.room-profile button[aria-checked=true]{color:var(--accent);background:var(--soft)}
+.room-modes{display:grid;gap:6px}
+.room-mode-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:8px;align-items:center}
+.room-mode-row .room{justify-content:flex-start;text-align:left;overflow-wrap:anywhere}
+.room-mode-row select{min-height:34px;padding:4px 6px;font-size:12px}
 .notice{margin:0 16px 12px;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--warning-color,#ff9800) 10%,transparent);font-size:12px;line-height:18px}.error{color:var(--error-color,#db4437)}footer{padding:0 12px 6px;text-align:right}footer button{min-height:28px;padding:4px;border:0;font-size:11px;color:var(--secondary-text-color,#727272)}
 @media(max-width:380px){.map-viewport{height:280px}.controls button{font-size:12px;padding:8px 10px}.badge{font-size:11px}.settings{gap:8px}}
 @media(prefers-reduced-motion:no-preference){button{transition:background .12s}}
@@ -153,8 +161,15 @@ class DahoamDreameCard extends HTMLElement {
   }
   setConfig(config) {
     if (!/^vacuum\.[a-z0-9_]+$/.test(config.entity || '')) throw new Error('Please select a vacuum entity.');
-    for (const [key, domain] of Object.entries({map_entity:'camera',live_camera_entity:'camera',cleaning_mode_entity:'select',water_level_entity:'number',battery_entity:'sensor',area_entity:'sensor',time_entity:'sensor',error_entity:'sensor',main_brush_entity:'sensor',side_brush_entity:'sensor',filter_entity:'sensor',sensor_cleaning_entity:'sensor',carpet_mode_entity:'switch',wash_entity:'button',dry_entity:'button',empty_entity:'button'})) {
+    for (const [key, domain] of Object.entries({map_entity:'camera',live_camera_entity:'camera',cleaning_mode_entity:'select',water_level_entity:'number',battery_entity:'sensor',area_entity:'sensor',time_entity:'sensor',error_entity:'sensor',main_brush_entity:'sensor',side_brush_entity:'sensor',filter_entity:'sensor',sensor_cleaning_entity:'sensor',carpet_mode_entity:'switch',customized_cleaning_entity:'switch',wash_entity:'button',dry_entity:'button',empty_entity:'button'})) {
       if (config[key] && !new RegExp(`^${domain}\\.[a-z0-9_]+$`).test(config[key])) throw new Error(`${key} must be a ${domain} entity.`);
+    }
+    for (const key of ['room_mode_entities','room_suction_entities']) {
+      const entities = config[key];
+      if (entities !== undefined && (!entities || typeof entities !== 'object' || Array.isArray(entities) ||
+          Object.entries(entities).some(([id, entity]) => !/^[1-9][0-9]*$/.test(id) || !/^select\.[a-z0-9_]+$/.test(entity)))) {
+        throw new Error(`${key} must map positive room IDs to select entities.`);
+      }
     }
     if (config.repeats !== undefined && ![1,2,3].includes(config.repeats)) throw new Error('repeats must be 1, 2 or 3.');
     if(config.default_water_level !== undefined && (!Number.isInteger(config.default_water_level) || config.default_water_level<1 || config.default_water_level>32))throw new Error('default_water_level must be an integer from 1 to 32.');
@@ -309,6 +324,62 @@ class DahoamDreameCard extends HTMLElement {
     for (const id of this._selected) if (!ids.has(id)) this._selected.delete(id);
     return result;
   }
+  _roomMode(roomId) {
+    return this._hass.states[this._config.room_mode_entities?.[roomId]];
+  }
+  _roomModeReady(roomId) {
+    const mode = this._roomMode(roomId);
+    return available(mode) && mode.attributes.options?.includes(mode.state);
+  }
+  _roomCleaningAllowed(vacuum) {
+    return available(vacuum) && !['cleaning','returning','paused'].includes(vacuum.state) &&
+      this._hasService('dreame_vacuum','vacuum_clean_segment');
+  }
+  _roomProfileActive(vacuum) {
+    return !!this._config.customized_cleaning_entity &&
+      (vacuum?.attributes.customized_cleaning === true || this._entity('customized_cleaning_entity')?.state === 'on');
+  }
+  _canStartRoomProfile(vacuum, rooms) {
+    return this._roomCleaningAllowed(vacuum) && this._entity('customized_cleaning_entity')?.state === 'on' &&
+      vacuum.attributes.customized_cleaning === true && rooms.length > 0 && rooms.every(room=>this._roomModeReady(room.id));
+  }
+  _renderRooms(rooms, vacuum) {
+    if (!rooms.length) return '';
+    const online = available(vacuum);
+    const roomAllowed = this._roomCleaningAllowed(vacuum);
+    const profile = this._entity('customized_cleaning_entity');
+    const customized = vacuum?.attributes.customized_cleaning === true;
+    const managed = profile && rooms.some(room => this._roomMode(room.id));
+    const profileOn = profile?.state === 'on';
+    const showModes = managed && (profileOn || customized);
+    const ready = !managed || (available(profile) && profileOn === customized &&
+      (!customized || rooms.every(room => !this._selected.has(room.id) || this._roomModeReady(room.id))));
+    const toggleAvailable = roomAllowed && available(profile) &&
+      this._hasService('switch',profileOn ? 'turn_off' : 'turn_on');
+    const roomButtons = rooms.map(room => {
+      const name = room.name || `Raum ${room.id}`;
+      const icon = /^mdi:[a-z0-9-]+$/.test(room.icon || '') ? room.icon : 'mdi:home-outline';
+      const button = `<button class="room" data-room="${room.id}" aria-pressed="${this._selected.has(room.id)}" ${this._busy || !online ? 'disabled' : ''}><ha-icon icon="${esc(icon)}"></ha-icon>${esc(name)}</button>`;
+      if (!showModes) return button;
+      const mode = this._roomMode(room.id);
+      const modeReady = this._roomModeReady(room.id);
+      const editable = modeReady && customized && roomAllowed && !this._busy && this._hasService('select','select_option');
+      return `<div class="room-mode-row" data-key="room-${room.id}">${button}
+        <select data-setting="room-mode-${room.id}" aria-label="${esc(`Reinigungsmodus für ${name}`)}" ${editable ? '' : 'disabled'}>
+          ${modeReady ? mode.attributes.options.map(option=>`<option value="${esc(option)}" ${mode.state===option ? 'selected' : ''}>${esc(cleaningModes[option] || option)}</option>`).join('') : '<option>Nicht verfügbar</option>'}
+        </select></div>`;
+    }).join('');
+    return `<section class="room-section" data-key="rooms">
+      ${managed ? `<div class="room-profile"><span class="muted">Reinigungsmodus pro Raum</span>
+        <button data-action="room-profile" role="switch" aria-label="Pro Raum" aria-checked="${profileOn}" ${toggleAvailable && !this._busy ? '' : 'disabled'}>Pro Raum</button></div>` : ''}
+      <div class="room-selection"><div class="section-title">${this._selected.size} / ${rooms.length} Räume</div>
+        <button data-action="select-all" ${this._selected.size===rooms.length || this._busy || !online ? 'disabled' : ''}>Alle auswählen</button></div>
+      <div class="${showModes ? 'room-modes' : 'rooms'}">${roomButtons}</div>
+      <div class="room-tools">${this._button('rooms','floor-plan','Auswahl reinigen',!roomAllowed || !ready || !this._selected.size,'primary')}
+        <button data-action="clear" ${!this._selected.size || this._busy ? 'disabled' : ''}>Leeren</button></div>
+      ${showModes && roomAllowed && !ready ? '<p class="muted">Raummodi sind noch nicht verfügbar. CleanGenius und die ausgewählten Räume prüfen.</p>' : ''}
+    </section>`;
+  }
   _mapURL() {
     const entity = this._entity('map_entity');
     if (!available(entity)) return '';
@@ -367,7 +438,8 @@ class DahoamDreameCard extends HTMLElement {
     const url = map ? this._mapURL() : '';
     const status = ({docked:'An der Station',cleaning:'Reinigt',paused:'Pausiert',returning:'Zurück zur Station',idle:'Bereit',unavailable:'Nicht verfügbar',unknown:'Unbekannt',error:'Fehler'})[state?.state] || state?.state || 'Entität nicht gefunden';
     const percent = validNumber(a.cleaning_progress) ? Math.min(100,Math.max(0,Number(a.cleaning_progress))) : 0;
-    const roomAllowed = online && !['cleaning','returning','paused'].includes(state.state) && this._hasService('dreame_vacuum','vacuum_clean_segment');
+    const roomProfileActive = this._roomProfileActive(state);
+    const profileStartBlocked = roomProfileActive && state?.state !== 'paused' && !this._canStartRoomProfile(state,rooms);
     const mode = this._entity('cleaning_mode_entity');
     const options = mode?.attributes.options || [];
     const selectedMode = this._draftMode ?? mode?.state;
@@ -375,8 +447,8 @@ class DahoamDreameCard extends HTMLElement {
     const water=options.some(option=>['mopping','sweeping_and_mopping','mopping_after_sweeping'].includes(option)) ? this._entity('water_level_entity') : undefined, waterMin=Number(water?.attributes.min ?? 1), waterMax=Number(water?.attributes.max ?? 32);
     const waterStep=Number(water?.attributes.step ?? 1);
     const waterLevel=this._draftWater ?? this._config.default_water_level ?? 14;
-    const roomsPanel = rooms.length ? `<section class="room-section" data-key="rooms"><div class="room-selection"><div class="section-title">${this._selected.size} / ${rooms.length} Räume</div><button data-action="select-all" ${this._selected.size===rooms.length || this._busy || !online ? 'disabled' : ''}>Alle auswählen</button></div><div class="rooms">${rooms.map(room=>`<button class="room" data-room="${room.id}" aria-pressed="${this._selected.has(room.id)}" ${this._busy || !online ? 'disabled' : ''}><ha-icon icon="${esc(/^mdi:[a-z0-9-]+$/.test(room.icon || '') ? room.icon : 'mdi:home-outline')}"></ha-icon>${esc(room.name || `Raum ${room.id}`)}</button>`).join('')}</div><div class="room-tools">${this._button('rooms','floor-plan','Auswahl reinigen',!roomAllowed || !this._selected.size,'primary')}<button data-action="clear" ${!this._selected.size || this._busy ? 'disabled' : ''}>Leeren</button></div></section>` : '';
-    const settingsPanel = (available(mode) && options.length) || (this._supports('set_fan_speed') && a.fan_speed_list?.length) || water || carpet ? `<section class="settings" data-key="settings">${available(mode) && options.length ? `<label>Reinigungsmodus<select data-setting="mode" ${!online || this._busy || running ? 'disabled':''}>${options.map(option=>`<option value="${esc(option)}" ${selectedMode===option?'selected':''}>${esc(({sweeping:'Saugen',mopping:'Wischen',sweeping_and_mopping:'Saugen & Wischen',mopping_after_sweeping:'Wischen nach Saugen'})[option] || option)}</option>`).join('')}</select></label>`:''}${this._supports('set_fan_speed') && a.fan_speed_list?.length ? `<label>Saugkraft<select data-setting="fan" ${!can('set_fan_speed',32) || this._busy ? 'disabled':''}>${a.fan_speed_list.map(option=>`<option value="${esc(option)}" ${a.fan_speed===option?'selected':''}>${esc(({min:'Minimal',low:'Leise',medium:'Mittel',high:'Stark',max:'Maximum',silent:'Leise',standard:'Standard',strong:'Stark',turbo:'Turbo'})[option] || option)}</option>`).join('')}</select></label>`:''}${water ? `<label class="water"><span class="water-top"><span>Wassermenge</span><output data-water-output>${measure(waterLevel)}</output></span><input data-setting="water" aria-label="Wassermenge" type="range" min="${waterMin}" max="${waterMax}" step="${waterStep}" value="${waterLevel}" ${!online || !mopping || this._busy || running ? 'disabled':''}></label>`:''}${carpet ? `<div class="carpet-setting"><span>Teppichmodus</span><button data-action="carpet" role="switch" aria-checked="${carpet.state==='on'}" ${!online || !available(carpet) || this._busy || !this._hasService('switch',carpet.state==='on'?'turn_off':'turn_on') ? 'disabled':''}>${carpet.state==='on'?'Ein':'Aus'}</button></div>`:''}${available(mode) && options.length ? `<div class="water-hint">Modus${water ? ' und Wasser' : ''} werden beim Start übernommen.${!mopping && water ? ' Für Wasser Saugen & Wischen oder Wischen wählen.' : ''}</div>`:''}</section>`:'';
+    const roomsPanel = this._renderRooms(rooms,state);
+    const settingsPanel = (available(mode) && options.length) || (this._supports('set_fan_speed') && a.fan_speed_list?.length) || water || carpet ? `<section class="settings" data-key="settings">${available(mode) && options.length ? `<label>Reinigungsmodus<select data-setting="mode" ${!online || roomProfileActive || this._busy || running ? 'disabled':''}>${options.map(option=>`<option value="${esc(option)}" ${selectedMode===option?'selected':''}>${esc(cleaningModes[option] || option)}</option>`).join('')}</select></label>`:''}${this._supports('set_fan_speed') && a.fan_speed_list?.length ? `<label>Saugkraft<select data-setting="fan" ${!can('set_fan_speed',32) || this._busy || (roomProfileActive && !this._roomCleaningAllowed(state)) ? 'disabled':''}>${a.fan_speed_list.map(option=>`<option value="${esc(option)}" ${a.fan_speed===option?'selected':''}>${esc(({min:'Minimal',low:'Leise',medium:'Mittel',high:'Stark',max:'Maximum',quiet:'Leise',silent:'Leise',standard:'Standard',strong:'Stark',turbo:'Turbo'})[option] || option)}</option>`).join('')}</select></label>`:''}${water ? `<label class="water"><span class="water-top"><span>Wassermenge</span><output data-water-output>${measure(waterLevel)}</output></span><input data-setting="water" aria-label="Wassermenge" type="range" min="${waterMin}" max="${waterMax}" step="${waterStep}" value="${waterLevel}" ${!online || roomProfileActive || !mopping || this._busy || running ? 'disabled':''}></label>`:''}${carpet ? `<div class="carpet-setting"><span>Teppichmodus</span><button data-action="carpet" role="switch" aria-checked="${carpet.state==='on'}" ${!online || !available(carpet) || this._busy || !this._hasService('switch',carpet.state==='on'?'turn_off':'turn_on') ? 'disabled':''}>${carpet.state==='on'?'Ein':'Aus'}</button></div>`:''}${roomProfileActive ? `<div class="water-hint">Raummodi sind unter Räume aktiv.${this._config.room_suction_entities ? ' Die Saugkraft wird beim Start für alle zu saugenden Räume übernommen.' : ' Start reinigt alle sichtbaren Räume mit ihren gespeicherten Einstellungen.'}</div>` : available(mode) && options.length ? `<div class="water-hint">Modus${water ? ' und Wasser' : ''} werden beim Start übernommen.${!mopping && water ? ' Für Wasser Saugen & Wischen oder Wischen wählen.' : ''}</div>`:''}</section>`:'';
     const dockPanel = ['wash_entity','dry_entity','empty_entity'].some(key=>this._entity(key)) ? `<section data-key="dock"><div class="section-title">Station</div><div class="dock">${[['wash_entity','wash','Wäsche'],['dry_entity','weather-sunny','Trocknen'],['empty_entity','delete-outline','Entleeren']].filter(([key])=>this._entity(key)).map(([key,icon,label])=>this._button(key,icon,label,!online || !this._entity(key) || this._entity(key).state === 'unavailable' || !this._hasService('button','press'))).join('')}</div></section>`:'';
     const maintenancePanel = supplies.length ? `<section data-key="maintenance"><div class="supplies">${supplies.map(item=>`<div class="supply">${esc(item.label)} · ${measure(item.value,` ${item.unit}`)}${item.percent?`<progress max="100" value="${Math.min(100,Math.max(0,item.value))}"></progress>`:'<div class="muted">Restlaufzeit</div>'}</div>`).join('')}</div></section>` : '';
     const toolsPanel = ['locate','clean_spot'].some(action=>this._supports(action)) ? `<section data-key="tools"><div class="dock">${this._supports('locate')?this._button('locate','volume-high','Finden',!online):''}${this._supports('clean_spot')?this._button('clean_spot','target','Punktreinigung',!online || running):''}</div></section>` : '';
@@ -395,11 +467,11 @@ class DahoamDreameCard extends HTMLElement {
       ${this._error ? `<div class="notice error" data-key="call-error" role="alert">${esc(this._error)}</div>` : ''}
       ${map ? `<div class="map"><div class="map-tools"><span class="map-label"><ha-icon icon="mdi:floor-plan"></ha-icon> ${esc(a.selected_map || 'Aktuelle Karte')}</span><button data-action="zoom-out" aria-label="Karte verkleinern" ${this._zoom <= 1 ? 'disabled':''}>−</button><button data-action="zoom-in" aria-label="Karte vergrößern" ${this._zoom >= 5 ? 'disabled':''}>+</button><button class="zoom-reset" data-action="zoom-reset" aria-label="Kartenansicht zurücksetzen">${Math.round(this._zoom*100)}%</button></div><div class="map-viewport" tabindex="0" role="group" aria-label="Reinigungskarte. Zwei Finger zum Zoomen und Verschieben. Am Desktop klicken, dann Mausrad. Plus, Minus und Null sind ebenfalls möglich." ${this._zoom>1?'data-zoomed':''}>${url ? `<img draggable="false" alt="Aktuelle Reinigungskarte" style="width:${this._zoom*100}%;height:${this._zoom*100}%" src="${esc(url)}">` : '<div class="placeholder">Karte nicht verfügbar · Kartenkamera auswählen</div>'}</div><div class="map-meta"><span>${esc(this._mapDate())}</span><button data-action="refresh-map" aria-label="Karte aktualisieren"><ha-icon icon="mdi:refresh"></ha-icon>Aktualisieren</button></div><div class="map-help">2 Finger: zoomen · Desktop: klicken, dann Mausrad</div></div>` : ''}
       ${validNumber(area) || validNumber(time) || validNumber(a.cleaning_progress) ? `<div class="stats">${validNumber(area)?`<div class="stat"><div class="value">${measure(area,' m²')}</div><div class="muted">Fläche</div></div>`:''}${validNumber(time)?`<div class="stat"><div class="value">${measure(time,' min')}</div><div class="muted">Dauer</div></div>`:''}${validNumber(a.cleaning_progress)?`<div class="stat"><div class="value">${measure(a.cleaning_progress,'%')}</div><div class="muted">Fortschritt</div></div>`:''}</div>`:''}
-      <div class="controls">${running && this._supports('pause') ? this._button('pause','pause','Pause',!online,'primary') : this._supports('start') ? this._button('start','play',state?.state === 'paused' ? 'Fortsetzen' : 'Start',!online,'primary'):''}${this._supports('return_to_base')?this._button('return_to_base','home-import-outline','Station',!online):''}${this._supports('stop')?this._button('stop','stop','Stopp',!online):''}</div>
+      <div class="controls">${running && this._supports('pause') ? this._button('pause','pause','Pause',!online,'primary') : this._supports('start') ? this._button('start','play',state?.state === 'paused' ? 'Fortsetzen' : 'Start',!online || profileStartBlocked,'primary'):''}${this._supports('return_to_base')?this._button('return_to_base','home-import-outline','Station',!online):''}${this._supports('stop')?this._button('stop','stop','Stopp',!online):''}</div>
       ${validNumber(a.cleaning_progress) ? `<div class="progress"><span style="width:${percent}%"></span></div>`:''}
       <div class="badges" data-key="badges">
         ${rooms.length ? this._badge('rooms','floor-plan',this._selected.size ? `${this._selected.size} Räume` : `${rooms.length} Räume`) : ''}
-        ${settingsPanel ? this._badge('settings','tune-variant',`${({sweeping:'Saugen',mopping:'Wischen',sweeping_and_mopping:'Saugen & Wischen',mopping_after_sweeping:'Saugen → Wischen'})[selectedMode] || 'Saugkraft'}${mopping && water ? ` · ${waterLevel}` : ''}`) : ''}
+        ${settingsPanel ? this._badge('settings','tune-variant',roomProfileActive ? 'Saugen' : `${cleaningModes[selectedMode] || 'Saugkraft'}${mopping && water ? ` · ${waterLevel}` : ''}`) : ''}
         ${dockPanel ? this._badge('dock','home-import-outline','Station') : ''}
         ${maintenancePanel ? this._badge('maintenance','tools','Wartung') : ''}${toolsPanel ? this._badge('tools','dots-horizontal','Extras') : ''}
         ${camera ? `<button class="badge" data-action="camera-open" aria-label="Live-Kamera öffnen" aria-haspopup="dialog" aria-busy="${!!this._cameraBusy}" ${this._cameraBusy || !available(camera)?'disabled':''}>${this._cameraBusy?'<span class="camera-spinner" aria-hidden="true"></span>':`<ha-icon icon="mdi:${cameraActive?'video':'video-outline'}"></ha-icon>`}${this._cameraBusy?'Kamera startet …':cameraActive?'Kamera · Live':'Kamera'}</button>` : ''}
@@ -419,10 +491,15 @@ class DahoamDreameCard extends HTMLElement {
       img.onerror=()=>{img.hidden=true;const message=document.createElement('div');message.className='placeholder';message.textContent='Karte konnte nicht geladen werden · erneut aktualisieren';img.parentElement.querySelector('.placeholder')?.remove();img.parentElement.append(message);};
     }
   }
-  async _call(domain, service, data, prepare = false) {
+  async _call(domain, service, data, prepare = false, confirm) {
     if(this._busy) return;
     this._busy=true;this._error='';this._render();
-    try { if(prepare)await this._prepareCleaning();await this._hass.callService(domain,service,data); }
+    try {
+      if (typeof prepare === 'function') await prepare();
+      else if (prepare) await this._prepareCleaning();
+      await this._hass.callService(domain,service,data);
+      if (confirm) await this._waitForConfirmation(confirm);
+    }
     catch(error) { this._error=error?.message || 'Aktion fehlgeschlagen'; }
     finally {this._busy=false;this._render();}
   }
@@ -436,15 +513,73 @@ class DahoamDreameCard extends HTMLElement {
     if(action==='clear') {this._selected.clear();this._render();return;}
     if(!available(this._entity('entity')) || this._busy) return;
     if(action==='select-all') {this._selected=new Set(this._rooms(this._entity('entity').attributes).map(room=>room.id));this._render();return;}
-    if(action==='rooms') {
-      const rooms=this._rooms(this._entity('entity').attributes);
-      const segments=rooms.filter(room=>this._selected.has(room.id)).map(room=>room.id);
-      if(!segments.length || !this._hasService('dreame_vacuum','vacuum_clean_segment')) return;
-      return this._call('dreame_vacuum','vacuum_clean_segment',{entity_id:this._config.entity,segments,repeats:this._config.repeats || 1},true);
+    const vacuum = this._entity('entity');
+    const profile = this._entity('customized_cleaning_entity');
+    if (action === 'room-profile' && this._roomCleaningAllowed(vacuum) && available(profile)) {
+      const enable = profile.state !== 'on';
+      const service = enable ? 'turn_on' : 'turn_off';
+      if (!this._hasService('switch',service)) return;
+      return this._call('switch',service,{entity_id:this._config.customized_cleaning_entity},false,
+        () => this._entity('customized_cleaning_entity')?.state === (enable ? 'on' : 'off') &&
+          this._entity('entity')?.attributes.customized_cleaning === enable);
+    }
+    const startAllRooms = action === 'start' && vacuum.state !== 'paused' && this._roomProfileActive(vacuum);
+    if (action === 'rooms' || startAllRooms) {
+      if (!this._roomCleaningAllowed(vacuum)) return;
+      const rooms = this._rooms(vacuum.attributes);
+      const targets = startAllRooms ? rooms : rooms.filter(room=>this._selected.has(room.id));
+      if (!targets.length) return;
+      const data = {entity_id:this._config.entity,segments:targets.map(room=>room.id)};
+      if (this._roomProfileActive(vacuum)) {
+        if (!this._canStartRoomProfile(vacuum,targets)) return;
+        const prepare = this._config.room_suction_entities ? () => this._prepareRoomSuction(targets,vacuum) : false;
+        return this._call('dreame_vacuum','vacuum_clean_segment',data,prepare);
+      }
+      if (profile && rooms.some(room=>this._roomMode(room.id)) && !available(profile)) return;
+      return this._call('dreame_vacuum','vacuum_clean_segment',{...data,repeats:this._config.repeats || 1},true);
     }
     if(['wash_entity','dry_entity','empty_entity'].includes(action) && this._config[action]) return this._call('button','press',{entity_id:this._config[action]});
     if(action==='carpet' && available(this._entity('carpet_mode_entity')))return this._call('switch',this._entity('carpet_mode_entity').state==='on'?'turn_off':'turn_on',{entity_id:this._config.carpet_mode_entity});
     if(['start','pause','stop','return_to_base','locate','clean_spot'].includes(action) && this._supports(action)) return this._call('vacuum',action,{entity_id:this._config.entity},action==='start' && this._entity('entity').state !== 'paused');
+  }
+  async _waitForConfirmation(confirm, message = 'Die Änderung wurde noch nicht bestätigt. Bitte den Gerätestatus prüfen.') {
+    const deadline = Date.now() + 10000;
+    while (!confirm() && Date.now() < deadline) await new Promise(resolve=>setTimeout(resolve,100));
+    if (!confirm()) throw new Error(message);
+  }
+  async _prepareRoomSuction(rooms, vacuum) {
+    const config = this._config;
+    const {selected_map_id, selected_map, fan_speed} = vacuum.attributes;
+    // Dreame calls its lowest vacuum fan speed "silent" and its room equivalent "quiet".
+    const option = fan_speed === 'silent' ? 'quiet' : fan_speed;
+    const targets = rooms.filter(room=>this._roomMode(room.id)?.state !== 'mopping').map(room=>({
+      name: room.name || `Raum ${room.id}`,
+      entityId: config.room_suction_entities[room.id],
+    }));
+    const checkMap = () => {
+      const current = this._entity('entity');
+      if (this._config !== config || !this._canStartRoomProfile(current,rooms) ||
+          current.attributes.selected_map_id !== selected_map_id || current.attributes.selected_map !== selected_map) {
+        throw new Error('Karte oder Gerätestatus hat sich geändert. Bitte erneut starten.');
+      }
+    };
+    if (targets.length && (!option || !this._hasService('select','select_option'))) {
+      throw new Error('Saugkraft für die Raumreinigung ist nicht verfügbar.');
+    }
+    for (const {name, entityId} of targets) {
+      const suction = this._hass.states[entityId];
+      if (!available(suction) || !suction.attributes.options?.includes(option)) {
+        throw new Error(`Saugkraft für ${name} ist nicht verfügbar.`);
+      }
+    }
+    for (const {name, entityId} of targets) {
+      checkMap();
+      if (this._hass.states[entityId]?.state === option) continue;
+      await this._hass.callService('select','select_option',{entity_id:entityId,option});
+      await this._waitForConfirmation(()=>this._hass.states[entityId]?.state === option,
+        `Saugkraft für ${name} wurde noch nicht bestätigt.`);
+    }
+    checkMap();
   }
   async _prepareCleaning() {
     const mode=this._entity('cleaning_mode_entity');
@@ -466,10 +601,28 @@ class DahoamDreameCard extends HTMLElement {
     }
   }
   _setting(kind,value) {
-    if(!available(this._entity('entity'))) return;
+    if (!available(this._entity('entity')) || this._busy) return;
+    if (kind.startsWith('room-mode-')) {
+      const id = Number(kind.slice('room-mode-'.length));
+      const vacuum = this._entity('entity');
+      const mode = this._roomMode(id);
+      if (!this._roomCleaningAllowed(vacuum) || vacuum.attributes.customized_cleaning !== true ||
+          !this._rooms(vacuum.attributes).some(room=>room.id === id) || !this._roomModeReady(id) ||
+          !mode.attributes.options.includes(value) || !this._hasService('select','select_option')) return;
+      const mapKey = this._mapKey;
+      return this._call('select','select_option',{entity_id:this._config.room_mode_entities[id],option:value},false,
+        () => this._mapKey === mapKey && this._roomMode(id)?.state === value);
+    }
     if(kind==='mode' && available(this._entity('cleaning_mode_entity')) && this._entity('cleaning_mode_entity').attributes.options?.includes(value)){this._draftMode=value;this._render();return;}
     if(kind==='water'){this._draftWater=Number(value);this._render();return;}
-    if(kind==='fan' && this._entity('entity').attributes.fan_speed_list?.includes(value)) return this._call('vacuum','set_fan_speed',{entity_id:this._config.entity,fan_speed:value});
+    if (kind === 'fan' && this._entity('entity').attributes.fan_speed_list?.includes(value)) {
+      const vacuum = this._entity('entity');
+      const roomProfile = this._roomProfileActive(vacuum);
+      if (roomProfile && !this._roomCleaningAllowed(vacuum)) return;
+      const confirm = roomProfile && this._config.room_suction_entities ?
+        () => this._entity('entity')?.attributes.fan_speed === value : undefined;
+      return this._call('vacuum','set_fan_speed',{entity_id:this._config.entity,fan_speed:value},false,confirm);
+    }
   }
 }
 
@@ -481,8 +634,8 @@ class DahoamDreameEditor extends HTMLElement {
     if(!this._hass || !this._config)return;
     if(!this._form){
       this.shadowRoot.innerHTML='<ha-form></ha-form>';this._form=this.shadowRoot.querySelector('ha-form');
-      this._form.schema=[{name:'entity',required:true,selector:{entity:{domain:'vacuum'}}},{name:'name',selector:{text:{}}},{name:'show_map',selector:{boolean:{}}},...Object.entries({map_entity:'camera',live_camera_entity:'camera',cleaning_mode_entity:'select',water_level_entity:'number',battery_entity:'sensor',area_entity:'sensor',time_entity:'sensor',error_entity:'sensor',main_brush_entity:'sensor',side_brush_entity:'sensor',filter_entity:'sensor',sensor_cleaning_entity:'sensor',carpet_mode_entity:'switch',wash_entity:'button',dry_entity:'button',empty_entity:'button'}).map(([name,domain])=>({name,selector:{entity:{domain}}})),{name:'default_water_level',selector:{number:{min:1,max:32,step:1,mode:'box'}}},{name:'repeats',selector:{number:{min:1,max:3,step:1,mode:'box'}}}];
-      this._form.computeLabel=s=>({entity:'Staubsauger',name:'Name',show_map:'Karte anzeigen',map_entity:'Kartenkamera',live_camera_entity:'Live-Kamera (optional)',cleaning_mode_entity:'Reinigungsmodus',water_level_entity:'Wassermenge (Feuchtigkeit)',battery_entity:'Batteriesensor',area_entity:'Flächensensor',time_entity:'Zeitsensor',error_entity:'Fehlersensor',main_brush_entity:'Hauptbürste (Restlaufzeit)',side_brush_entity:'Seitenbürste (Restlaufzeit)',filter_entity:'Filter (Restlaufzeit)',sensor_cleaning_entity:'Sensoren (Restlaufzeit)',carpet_mode_entity:'Teppichmodus',default_water_level:'Standard-Wassermenge (14)',wash_entity:'Moppwäsche (Start/Pause)',dry_entity:'Trocknung (Start/Stopp)',empty_entity:'Staub entleeren',repeats:'Raumreinigung: Wiederholungen'})[s.name] || s.name;
+      this._form.schema=[{name:'entity',required:true,selector:{entity:{domain:'vacuum'}}},{name:'name',selector:{text:{}}},{name:'show_map',selector:{boolean:{}}},...Object.entries({map_entity:'camera',live_camera_entity:'camera',cleaning_mode_entity:'select',water_level_entity:'number',battery_entity:'sensor',area_entity:'sensor',time_entity:'sensor',error_entity:'sensor',main_brush_entity:'sensor',side_brush_entity:'sensor',filter_entity:'sensor',sensor_cleaning_entity:'sensor',carpet_mode_entity:'switch',customized_cleaning_entity:'switch',wash_entity:'button',dry_entity:'button',empty_entity:'button'}).map(([name,domain])=>({name,selector:{entity:{domain}}})),{name:'default_water_level',selector:{number:{min:1,max:32,step:1,mode:'box'}}},{name:'repeats',selector:{number:{min:1,max:3,step:1,mode:'box'}}}];
+      this._form.computeLabel=s=>({entity:'Staubsauger',name:'Name',show_map:'Karte anzeigen',map_entity:'Kartenkamera',live_camera_entity:'Live-Kamera (optional)',cleaning_mode_entity:'Reinigungsmodus',water_level_entity:'Wassermenge (Feuchtigkeit)',battery_entity:'Batteriesensor',area_entity:'Flächensensor',time_entity:'Zeitsensor',error_entity:'Fehlersensor',main_brush_entity:'Hauptbürste (Restlaufzeit)',side_brush_entity:'Seitenbürste (Restlaufzeit)',filter_entity:'Filter (Restlaufzeit)',sensor_cleaning_entity:'Sensoren (Restlaufzeit)',carpet_mode_entity:'Teppichmodus',customized_cleaning_entity:'Individuelle Raumreinigung',default_water_level:'Standard-Wassermenge (14)',wash_entity:'Moppwäsche (Start/Pause)',dry_entity:'Trocknung (Start/Stopp)',empty_entity:'Staub entleeren',repeats:'Raumreinigung: Wiederholungen'})[s.name] || s.name;
       this._form.addEventListener('value-changed',event=>{event.stopPropagation();this._config={...this._config,...event.detail.value};this.dispatchEvent(new CustomEvent('config-changed',{bubbles:true,composed:true,detail:{config:this._config}}));});
     }
     this._form.hass=this._hass;this._form.data=this._config;
